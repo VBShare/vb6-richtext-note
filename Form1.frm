@@ -187,7 +187,6 @@ Begin VB.Form Article
          _ExtentX        =   17806
          _ExtentY        =   9340
          _Version        =   393217
-         Enabled         =   -1  'True
          ScrollBars      =   2
          TextRTF         =   $"Form1.frx":0CCA
       End
@@ -404,8 +403,6 @@ Private Declare Function SendMessage _
                                        lParam As Any) As Long
 
 Private Const WM_PASTE = &H302
-Private documents As New DBMDocuments
-Private funs As New Fun
 Function LoadArticle(ByVal user As String) 'ok at 11-10-29
 'done rewrite
     '清理
@@ -419,9 +416,9 @@ Function LoadArticle(ByVal user As String) 'ok at 11-10-29
     section.Caption = ""
     contents.Text = ""
     '添加所有的文章到列表
-    Set art = documents.OfUser(user).All
+    Set art = eDocument.OfUser(user).All
     If art.RecordCount = 0 Then
-      documents.db.ReleaseRecordset art
+      adh.ReleaseRecordset art
       Exit Function
     End If
     art.MoveFirst
@@ -433,8 +430,8 @@ Function LoadArticle(ByVal user As String) 'ok at 11-10-29
             DoEvents
             k = 0
         Else
-            List1.AddItem art.Fields("Topic")
-            List2.AddItem art.Fields("IdNum")
+            List1.AddItem art.fields("Topic")
+            List2.AddItem art.fields("IdNum")
             k = k + 1
         End If
 
@@ -443,14 +440,14 @@ Function LoadArticle(ByVal user As String) 'ok at 11-10-29
         DoEvents
     Loop
 
-    documents.db.ReleaseRecordset art
+    documents.Db.ReleaseRecordset art
 End Function
 
 Function ArticleById(ByVal IdNum As String)
-  Set art = documents.FindByID(IdNum)
+  Set art = eDocument.FindByID(IdNum)
 
   If art.RecordCount = 0 Then
-    documents.db.ReleaseRecordset art
+    documents.Db.ReleaseRecordset art
     MsgBox "未知错误！"
     Exit Function
   End If
@@ -459,16 +456,16 @@ Function ArticleById(ByVal IdNum As String)
 
   'load to boxs
   With art
-    title.Text = CNull(.Fields("Topic"))
-    adder.Text = CNull(.Fields("auser"))
-    addtime.Text = CNull(.Fields("AddTime"))
-    section.Caption = CNull(.Fields("Class"))
-    no.Caption = CNull(.Fields("IdNum"))
-    contents.TextRTF = .Fields("Content")
-    Remark.Text = CNull(.Fields("Remark"))
+    title.Text = CNull(.fields("Topic"))
+    adder.Text = CNull(.fields("auser"))
+    addtime.Text = CNull(.fields("AddTime"))
+    section.Caption = CNull(.fields("Class"))
+    no.Caption = CNull(.fields("IdNum"))
+    contents.TextRTF = .fields("Content")
+    Remark.Text = CNull(.fields("Remark"))
   End With
 
-  documents.db.ReleaseRecordset art
+  documents.Db.ReleaseRecordset art
 End Function
 
 Private Sub AutoTextConv_Click()
@@ -488,8 +485,8 @@ Private Sub AutoTextConv_Click()
 
     Do While Not rartxt.EOF
         i = i + 1
-        objRTB.TextRTF = rartxt.Fields("Content")
-        rartxt.Fields("txtContent") = CStr(objRTB.Text)
+        objRTB.TextRTF = rartxt.fields("Content")
+        rartxt.fields("txtContent") = CStr(objRTB.Text)
         rartxt.Update
 
         DoEvents
@@ -522,8 +519,8 @@ Private Sub Combo1_Click()
     If res.RecordCount = 0 Then res.Close: Exit Sub
 
     Do While Not res.EOF = True
-        List1.AddItem CNull(res.Fields("Topic"))
-        List2.AddItem CNull(res.Fields("IdNum"))
+        List1.AddItem CNull(res.fields("Topic"))
+        List2.AddItem CNull(res.fields("IdNum"))
         res.MoveNext
     Loop
 
@@ -554,7 +551,7 @@ End Sub
 Private Sub Command1_Click() 'cancel autologin sign ok at 11-10-29
     Set res = New ADODB.Recordset
     res.Open "select * from Users where uName='" & nowLogin & "'", conn, 3, 3
-    res.Fields("isUsed") = False
+    res.fields("isUsed") = False
     res.Update
     res.Close
 End Sub
@@ -596,7 +593,7 @@ Private Sub Command7_Click()
     res.Open "select * from Documents where IdNum='" & no.Caption & "'", conn, 3, 3
 
     If res.RecordCount = 0 Then res.Close: Exit Sub
-    url = res.Fields("Source")
+    url = res.fields("Source")
     res.Close
 
     If Len(url) > 10 Then
@@ -678,7 +675,8 @@ Private Sub discolor_Click()
 End Sub
 
 Private Sub Form_Load()
-  Set documents = documents.OfUser(nowLogin)
+  Set eDocument = eDocument.OfUser(nowLogin)
+
 End Sub
 
 Private Sub Form_Unload(Cancel As Integer)
@@ -747,9 +745,9 @@ Private Sub SaveChange_Click() 'ok at 11-10-28
     With res
 
         DoEvents
-        .Fields("Content") = b
-        .Fields("txtContent") = contents.Text '2012-11-05添加，为了提供全文搜索功能
-        .Fields("Remark") = IIf(Len(Remark.Text) > 0, Remark.Text, "暂无评论")
+        .fields("Content") = b
+        .fields("txtContent") = contents.Text '2012-11-05添加，为了提供全文搜索功能
+        .fields("Remark") = IIf(Len(Remark.Text) > 0, Remark.Text, "暂无评论")
 
         DoEvents
         .Update
@@ -796,7 +794,7 @@ Function RefreshClass() 'ok at 11-10-28
     If res.RecordCount = 0 Then res.Close: Exit Function
 
     Do While Not res.EOF = True
-        Combo1.AddItem CNull(res.Fields("className"))
+        Combo1.AddItem CNull(res.fields("className"))
         res.MoveNext
     Loop
 

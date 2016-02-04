@@ -26,27 +26,46 @@ Public rartxt   As ADODB.Recordset
 
 Public isDBon   As Boolean
 
-Public adh As AdodbHelper
+Public adh As New AdodbHelper
+'DataBase Entitys
+Public documents As DbModel
+Public class_ofs As DbModel
+Public relates As DbModel
+Public users As DbModel
+
+Public eDocument As New DBDocument
+Public eClassOf As New DBClassOf
+Public eRelate As New DBRelate
+Public eUser As New DBUser
 
 Function OpenTable(ByVal txtPath As String) '【功能：建立数据库连接；状态：完成】
-    Set conn = New ADODB.Connection
-    conn.CursorLocation = adUseClient
-    conn.Open "PROVIDER=Microsoft.Jet.OLEDB.4.0;Data Source=" & txtPath & ";"
+  Set conn = New ADODB.Connection
+  conn.CursorLocation = adUseClient
+  conn.Open "PROVIDER=Microsoft.Jet.OLEDB.4.0;Data Source=" & txtPath & ";"
 End Function
 
 Function CloseTable() '【功能：关闭数据库连接；状态：完成】
-    conn.Close
+  conn.Close
 End Function
+
+Public Sub CreateDb(ByVal DbPath As String)
+  Dim dbc As New DbCreateHelper
+  dbc.SetDbFile DbPath
+  dbc.InitDbFromModels documents, class_ofs, relates, users
+End Sub
 
 Sub Main()
     '检查数据库文件是否存在
     'SkinH_AttachEx App.Path & "\QQ2011.she", "" '最后编译时设置为可见
-    'init adodbhelper
-    Set adh = New AdodbHelper
-    adh.SetConnToFile App.Path & "\documents.mdb"
+    Dim DbPath As String
+    DbPath = Replace(App.Path & "\documents.mdb", "\\", "\")
+    Set documents = New DBDocument
+    Set users = New DBUser
+    Set class_ofs = New DBClassOf
+    Set relates = New DBRelate
 
-    If Dir(Replace(App.Path & "\documents.mdb", "\\", "\")) = "" Then 'file does not exist
-        Call OutputFileS(101, Replace(App.Path & "\documents.mdb", "\\", "\"))
+    If Dir(DbPath) = "" Then 'file does not exist
+      CreateDb DbPath
     End If
 
     Call OpenTable(App.Path & "\documents.mdb")
@@ -73,27 +92,27 @@ Sub Main()
 
     Do While Not res.EOF = True
 
-        If CNull(res.Fields("uName")) = "" Or CNull(res.Fields("uPass")) = "" Then
+        If CNull(res.fields("uName")) = "" Or CNull(res.fields("uPass")) = "" Then
             res.Delete adAffectCurrent
         Else
-            login.user.AddItem res.Fields("uName")
+            login.user.AddItem res.fields("uName")
 
-            If res.Fields("autologin") = True Then
+            If res.fields("autologin") = True Then
                 login.autologin.Value = 1
             Else
                 login.autologin.Value = 0
             End If
 
-            If res.Fields("rememberPass") = True Then
+            If res.fields("rememberPass") = True Then
                 login.autologin.Value = 1
             Else
                 login.autologin.Value = 0
             End If
 
-            If res.Fields("autologin") = True And res.Fields("isUsed") = True Then
+            If res.fields("autologin") = True And res.fields("isUsed") = True Then
                 login.Show
-                login.user.Text = res.Fields("uName")
-                login.pass.Text = res.Fields("uPass")
+                login.user.Text = res.fields("uName")
+                login.pass.Text = res.fields("uPass")
                 res.Close
                 login.ClickOk
 
@@ -220,18 +239,18 @@ Function loadUser() 'ok at 11-10-29
 
     Do While Not res.EOF = True
 
-        If CNull(res.Fields("uName")) = "" Or CNull(res.Fields("uPass")) = "" Then
+        If CNull(res.fields("uName")) = "" Or CNull(res.fields("uPass")) = "" Then
             res.Delete adAffectCurrent
         Else
-            login.user.AddItem res.Fields("uName")
+            login.user.AddItem res.fields("uName")
 
-            If res.Fields("autologin") = True Then
+            If res.fields("autologin") = True Then
                 login.autologin.Value = 1
             Else
                 login.autologin.Value = 0
             End If
 
-            If res.Fields("rememberPass") = True Then
+            If res.fields("rememberPass") = True Then
                 login.autologin.Value = 1
             Else
                 login.autologin.Value = 0
@@ -251,8 +270,8 @@ Function AddClass(ByVal ClassName As String, ByVal UserName) 'ok at 11-12-29
 
     With res
         .AddNew
-        .Fields("className") = ClassName
-        .Fields("userName") = UserName
+        .fields("className") = ClassName
+        .fields("userName") = UserName
         .Update
     End With
 
@@ -275,7 +294,7 @@ Function AutoSection(ByVal Str As String) 'ok at 11-11-06
 
     Do While Not res.EOF = True
 
-        If InStr(1, LCase(Str), LCase(res.Fields("keyword"))) > 0 Then
+        If InStr(1, LCase(Str), LCase(res.fields("keyword"))) > 0 Then
 
             Exit Do
 
@@ -288,7 +307,7 @@ Function AutoSection(ByVal Str As String) 'ok at 11-11-06
 
         For i = 0 To .section.ListCount - 1
 
-            If InStr(1, res.Fields("section"), .section.List(i)) > 0 Then
+            If InStr(1, res.fields("section"), .section.List(i)) > 0 Then
                 .section.ListIndex = i
 
                 Exit For

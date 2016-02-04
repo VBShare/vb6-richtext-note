@@ -38,7 +38,7 @@ Option Explicit
 '------------------------------------------------------------------------------
 '       公有常量
 '------------------------------------------------------------------------------
-Public db As AdodbHelper
+
 
 '------------------------------------------------------------------------------
 '       公有数据类型
@@ -80,12 +80,24 @@ Public db As AdodbHelper
 '------------------------------------------------------------------------------
 '       私有变量
 '------------------------------------------------------------------------------
-
+Private m_TableName As String
+Private m_TableFields As String
+Private m_ConnProvider As ConnProvider
 
 '------------------------------------------------------------------------------
 '       属性变量
 '------------------------------------------------------------------------------
+Public Property Get TableName() As String
+  TableName = m_TableName
+End Property
 
+Public Property Get TableFields() As String
+  TableFields = m_TableFields
+End Property
+
+Public Property Get Db() As AdodbHelper
+  Set Db = m_ConnProvider.DbHelper
+End Property
 
 '------------------------------------------------------------------------------
 '       私有API
@@ -103,8 +115,7 @@ Public db As AdodbHelper
 '       初始化
 '------------------------------------------------------------------------------
 Private Sub Class_Initialize()
-  Set db = New AdodbHelper
-  db.SetConnToFile App.Path & "\documents.mdb"
+  Set m_ConnProvider = New ConnProvider
 End Sub
 
 
@@ -112,7 +123,7 @@ End Sub
 '       销毁
 '------------------------------------------------------------------------------
 Private Sub Class_Terminate()
-  Set db = Nothing
+  Set m_ConnProvider = Nothing
 End Sub
 
 

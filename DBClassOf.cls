@@ -55,5 +55,5 @@ Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() A
   Else
     sql = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set DBModel_Where = Db.ExecParamQuery(sql, Params)
+  Set DBModel_Where = m_DBM.Db.ExecParamQuery(sql, Params)
 End Function

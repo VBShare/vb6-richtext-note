@@ -65,7 +65,7 @@ Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() A
   Else
     sql = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set DBModel_Where = Db.ExecParamQuery(sql, Params)
+  Set DBModel_Where = m_DBM.Db.ExecParamQuery(sql, Params)
 End Function
 
 Public Sub TransferToClass(ByVal ClassName As String, ByVal IdNum As String)
@@ -77,21 +77,21 @@ Public Sub Delete(ByVal IdNum As String)
 End Sub
 
 Public Sub Create(ByVal Topic As String, _
-                  ByRef Content() As Byte, _
+                  ByRef content() As Byte, _
                   ByVal Source As String, _
                   ByVal ClassName As String, _
                   ByVal IdNum As String, _
                   ByVal UserName As String, _
                   ByVal txtContent As String)
   Dim sql As String
-  Dim AddTime As String, Remark As String
-  AddTime = Format(Date, "yyyy-mm-dd")
+  Dim addtime As String, Remark As String
+  addtime = Format(Date, "yyyy-mm-dd")
   Remark = "NULL"
   
   sql = "INSERT INTO `Documents` (`Topic`, `AddTime`, `Remark`, `Source`," & _
         "`Class`, `IdNum`, `auser`, `Content`, `txtContent`) VALUES (" & _
         "?, ?, ?, ?," & _
         "?, ?, ?, ?, ?);"
-  m_DBM.Db.ExecParamNonQuery sql, Topic, AddTime, Remark, Source, _
-                              ClassName, IdNum, UserName, Content, txtContent
+  m_DBM.Db.ExecParamNonQuery sql, Topic, addtime, Remark, Source, _
+                              ClassName, IdNum, UserName, content, txtContent
 End Sub

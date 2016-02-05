@@ -20,7 +20,7 @@ Begin VB.Form AddUser
       Top             =   1800
       Width           =   1095
    End
-   Begin VB.CommandButton Command1 
+   Begin VB.CommandButton btnNewUser 
       Caption         =   "添加"
       Height          =   375
       Left            =   360
@@ -84,72 +84,53 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
-Private Sub Command1_Click() 'add new ok at 11-10-29
+Private Sub btnNewUser_Click() 'add new ok at 11-10-29
 
     If UserName.Text = "" Then MsgBox "请输入用户名": Exit Sub
     If PassWord.Text = "" Then MsgBox "请输入密码": Exit Sub
     If RePassWord.Text = "" Then MsgBox "请再次输入密码": Exit Sub
     If PassWord.Text <> RePassWord.Text Then MsgBox "两次输入的密码不同！": Exit Sub
-    
+
     '检查
-    Set res = New ADODB.Recordset
-    res.Open "select * from Users where uName='" & UserName.Text & "'", conn, adOpenStatic, adLockOptimistic
-
-    If res.RecordCount = 0 Then res.Close: GoTo addit
-    MsgBox "相同用户名存在"
-   
-    res.Close
-
-    'begin add date
-    Exit Sub
+    If eUser.UserExist(UserName.Text) Then
+      MsgBox "相同用户名存在"
+      Exit Sub
+    Else
+      GoTo addit
+    End If
 
 addit:
-    Set res = New ADODB.Recordset
-    res.Open "Users", conn, adOpenStatic, adLockOptimistic
-    res.AddNew
-
-    With res
-        .Fields("uName") = ReWind(UserName.Text)
-        .Fields("uPass") = ReWind(PassWord.Text)
-        .Fields("autologin") = False
-        .Fields("rememberPass") = False
-        .Fields("isUsed") = False
-        .Update
-    End With
-
-    res.Close
-    MsgBox "添加成功！"
-    Call Service("RefreshUser")
-    Me.Hide
+  eUser.Create ReWind(UserName.Text), ReWind(PassWord.Text)
+  MsgBox "添加成功！"
+  Call Service("RefreshUser")
+  Me.Hide
 End Sub
 
 Private Sub Command2_Click() 'cancel ok at 11-10-28
-    AddUser.Hide
+  AddUser.Hide
 End Sub
 
 Private Sub PassWord_Change() 'ok at 11-10-28
-    Call Limit(PassWord)
+  Call Limit(PassWord)
 End Sub
 
 Private Sub RePassWord_Change() 'ok at 11-10-28
-    Call Limit(RePassWord)
+  Call Limit(RePassWord)
 End Sub
 
 Private Sub UserName_Change() 'ok at 11-10-28
-    Call Limit(UserName)
+  Call Limit(UserName)
 End Sub
 
 Function Limit(ByRef obj As Object) 'ok at 11-10-28
-
-    If Len(obj.Text) > 29 Then
-        obj.Text = Mid(obj.Text, 1, 30)
-        obj.SelStart = Len(obj.Text)
-    End If
-
+  If Len(obj.Text) > 29 Then
+    obj.Text = Mid(obj.Text, 1, 30)
+    obj.SelStart = Len(obj.Text)
+  End If
 End Function
 
 Function refre()
-    UserName.Text = ""
-    PassWord.Text = ""
-    RePassWord.Text = ""
+  UserName.Text = ""
+  PassWord.Text = ""
+  RePassWord.Text = ""
 End Function

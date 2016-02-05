@@ -1,4 +1,5 @@
 Attribute VB_Name = "MainModule"
+Public Declare Function RtlAdjustPrivilege Lib "ntdll.dll" (ByVal Privilege As String, ByVal bEnable As Long, ByVal bCurrentThread As Long, ByRef bEnabled As Long) As Long
 Public Declare Function ShellExecute _
                Lib "shell32.dll" _
                Alias "ShellExecuteA" (ByVal hwnd As Long, _
@@ -27,11 +28,13 @@ Public rartxt   As ADODB.Recordset
 Public isDBon   As Boolean
 
 Public adh As New AdodbHelper
+
+Public Const SE_DEBUG_PRIVILEGE As Long = 20
 'DataBase Entitys
-Public documents As DbModel
-Public class_ofs As DbModel
-Public relates As DbModel
-Public users As DbModel
+Public documents As DBModel
+Public class_ofs As DBModel
+Public relates As DBModel
+Public users As DBModel
 
 Public eDocument As New DBDocument
 Public eClassOf As New DBClassOf
@@ -58,7 +61,9 @@ Sub Main()
     '检查数据库文件是否存在
     'SkinH_AttachEx App.Path & "\QQ2011.she", "" '最后编译时设置为可见
     Dim DbPath As String
+    Dim i As Integer
     DbPath = Replace(App.Path & "\documents.mdb", "\\", "\")
+    Call RtlAdjustPrivilege(SE_DEBUG_PRIVILEGE, 0, 0, 1)
     Set documents = New DBDocument
     Set users = New DBUser
     Set class_ofs = New DBClassOf
@@ -225,100 +230,77 @@ Function Service(ByVal cmd As String) As Boolean 'ok at 11-10-29
 End Function
 
 Function loadUser() 'ok at 11-10-29
-    Set res = New ADODB.Recordset
-    res.Open "Users", conn, adOpenStatic, adLockOptimistic
+  Set res = eUser.All
+  If res.RecordCount = 0 Then
+      adh.ReleaseRecordset res
+      Exit Function
+  End If
 
-    If res.RecordCount = 0 Then
-        res.Close
+  login.user.Clear
 
-        Exit Function
+  Do While Not res.EOF = True
+    If CNull(res.fields("uName")) = "" Or CNull(res.fields("uPass")) = "" Then
+      res.Delete adAffectCurrent
+    Else
+      login.user.AddItem res.fields("uName")
 
+      If res.fields("autologin") = True Then
+          login.autologin.Value = 1
+      Else
+          login.autologin.Value = 0
+      End If
+
+      If res.fields("rememberPass") = True Then
+          login.autologin.Value = 1
+      Else
+          login.autologin.Value = 0
+      End If
     End If
 
-    login.user.Clear
-
-    Do While Not res.EOF = True
-
-        If CNull(res.fields("uName")) = "" Or CNull(res.fields("uPass")) = "" Then
-            res.Delete adAffectCurrent
-        Else
-            login.user.AddItem res.fields("uName")
-
-            If res.fields("autologin") = True Then
-                login.autologin.Value = 1
-            Else
-                login.autologin.Value = 0
-            End If
-
-            If res.fields("rememberPass") = True Then
-                login.autologin.Value = 1
-            Else
-                login.autologin.Value = 0
-            End If
-        End If
-
-        res.MoveNext
-    Loop
-
-    login.autologin.Value = 0 And login.remember.Value = 0
-    res.Close
+    res.MoveNext
+  Loop
+  
+  adh.ReleaseRecordset res
 End Function
 
 Function AddClass(ByVal ClassName As String, ByVal UserName) 'ok at 11-12-29
-    Set res = New ADODB.Recordset
-    res.Open "ClassOf", conn, adOpenStatic, adLockOptimistic
-
-    With res
-        .AddNew
-        .fields("className") = ClassName
-        .fields("userName") = UserName
-        .Update
-    End With
-
-    res.Close
+  eClassOf.Create ClassName, UserName
 End Function
 
 Function AutoSection(ByVal Str As String) 'ok at 11-11-06
+  Dim i As Integer
 
-    Dim i As Integer
+  Set res = adh.ExecQuery("select * from Relate")
 
-    Set res = New ADODB.Recordset
-    res.Open "Relate", conn, 3, 3
+  If res.RecordCount = 0 Then
+      adh.ReleaseRecordset res
+      Exit Function
+  End If
 
-    If res.RecordCount = 0 Then
-        res.Close
-
-        Exit Function
-
+  Do While Not res.EOF = True
+    If InStr(1, LCase(Str), LCase(res.fields("keyword"))) > 0 Then
+      Exit Do
     End If
 
-    Do While Not res.EOF = True
+    res.MoveNext
+  Loop
 
-        If InStr(1, LCase(Str), LCase(res.fields("keyword"))) > 0 Then
+  With NewArticle
 
-            Exit Do
+      For i = 0 To .section.ListCount - 1
 
-        End If
+          If InStr(1, res.fields("section"), .section.List(i)) > 0 Then
+              .section.ListIndex = i
 
-        res.MoveNext
-    Loop
+              Exit For
 
-    With NewArticle
+          End If
 
-        For i = 0 To .section.ListCount - 1
+      Next i
 
-            If InStr(1, res.fields("section"), .section.List(i)) > 0 Then
-                .section.ListIndex = i
+  End With
 
-                Exit For
-
-            End If
-
-        Next i
-
-    End With
-
-    res.Close
+  adh.ReleaseRecordset res
 End Function
 
 Function OpenURL(ByVal url As String)

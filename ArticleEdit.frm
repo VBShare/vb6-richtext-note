@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{3B7C8863-D78F-101B-B9B5-04021C009402}#1.2#0"; "Richtx32.ocx"
+Object = "{3B7C8863-D78F-101B-B9B5-04021C009402}#1.2#0"; "RICHTX32.OCX"
 Begin VB.Form ArticleEdit 
    BorderStyle     =   1  'Fixed Single
    Caption         =   "文章管理"
@@ -60,6 +60,7 @@ Begin VB.Form ArticleEdit
          _ExtentX        =   16748
          _ExtentY        =   9340
          _Version        =   393217
+         Enabled         =   -1  'True
          ScrollBars      =   2
          TextRTF         =   $"ArticleEdit.frx":08CA
       End
@@ -212,41 +213,48 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Function ArticleById(ByVal IdNum As String) 'ok at 11-10-29
-    Set art = New ADODB.Recordset
-    art.Open "select * from Documents where IdNum='" & IdNum & "'", conn, 3, 3
+    Set art = documents.Where("`IdNum` = ?", IdNum)
+    
+    If art.RecordCount = 0 Then
+      MsgBox "未知错误！"
+      adh.ReleaseRecordset art
+      Exit Function
+    End If
 
-    If art.RecordCount = 0 Then MsgBox "未知错误！": art.Close: Exit Function
     art.MoveFirst
 
     'load to boxs
     With art
-        title.Text = CNull(.Fields("Topic"))
-        adder.Text = CNull(.Fields("auser"))
-        addtime.Text = CNull(.Fields("AddTime"))
-        fenlei.Caption = CNull(.Fields("Class"))
-        no.Caption = CNull(.Fields("IdNum"))
-        contents.TextRTF = .Fields("Content")
+        title.Text = CNull(.fields("Topic"))
+        adder.Text = CNull(.fields("auser"))
+        addtime.Text = CNull(.fields("AddTime"))
+        fenlei.Caption = CNull(.fields("Class"))
+        no.Caption = CNull(.fields("IdNum"))
+        contents.TextRTF = .fields("Content")
     End With
 
-    art.Close
+    adh.ReleaseRecordset art
 End Function
 
 Function RefreshClass() 'ok at 11-10-29
     Combo1.Clear
     section.Clear
-    Set res = New ADODB.Recordset
-    res.Open "select * from ClassOf where userName='" & nowLogin & "'", conn, adOpenStatic, adLockOptimistic
+    Set res = class_ofs.Where("`userName` = ?", nowLogin)
 
-    If res.RecordCount = 0 Then res.Close: Combo1.AddItem "新增分类": Exit Function
+    If res.RecordCount = 0 Then
+      adh.ReleaseRecordset res
+      Combo1.AddItem "新增分类"
+      Exit Function
+    End If
 
     Do While Not res.EOF = True
-        section.AddItem CNull(res.Fields("className"))
-        Combo1.AddItem CNull(res.Fields("className"))
+        section.AddItem CNull(res.fields("className"))
+        Combo1.AddItem CNull(res.fields("className"))
         res.MoveNext
     Loop
 
     Combo1.AddItem "新增分类"
-    res.Close
+    adh.ReleaseRecordset res
 End Function
 
 Function LoadArticle(ByVal user As String) 'ok at 11-10-29fist run
@@ -259,19 +267,21 @@ Function LoadArticle(ByVal user As String) 'ok at 11-10-29fist run
     fenlei.Caption = ""
     contents.Text = ""
     '添加
-    Set art = New ADODB.Recordset
-    art.Open "select * from Documents where auser='" & user & "'", conn, 3, 3
+    Set art = documents.Where("`auser` = ?", user)
 
-    If art.RecordCount = 0 Then art.Close: Exit Function
+    If art.RecordCount = 0 Then
+      adh.ReleaseRecordset art
+      Exit Function
+    End If
     art.MoveFirst
 
     Do While Not art.EOF = True
-        List1.AddItem art.Fields("Topic")
-        List2.AddItem art.Fields("IdNum")
+        List1.AddItem art.fields("Topic")
+        List2.AddItem art.fields("IdNum")
         art.MoveNext
     Loop
 
-    art.Close
+    adh.ReleaseRecordset art
 End Function
 
 Private Sub Combo1_Click() 'ok at 11-12-29
@@ -290,82 +300,88 @@ Private Sub Combo1_Click() 'ok at 11-12-29
     List1.Clear
     List2.Clear
     'begin
-    Set res = New ADODB.Recordset
-    res.Open "select * from Documents where Class='" & Combo1.Text & "' and auser='" & nowLogin & "'", conn, 3, 3
+    Set res = documents.Where("`Class` = ? And `auser` = ?", Combo1.Text, nowLogin)
 
-    If res.RecordCount = 0 Then res.Close: Exit Sub
+    If res.RecordCount = 0 Then
+      adh.ReleaseRecordset res
+      Exit Sub
+    End If
 
     Do While Not res.EOF = True
-        List1.AddItem CNull(res.Fields("Topic"))
-        List2.AddItem CNull(res.Fields("IdNum"))
+        List1.AddItem CNull(res.fields("Topic"))
+        List2.AddItem CNull(res.fields("IdNum"))
         res.MoveNext
     Loop
 
-    res.Close
+    adh.ReleaseRecordset res
     List1.ListIndex = 0
 End Sub
 
 Private Sub Command1_Click() '转移分类ok at 11-10-29
 
     If section.Text = "" Then Exit Sub
-    Set art = New ADODB.Recordset
-    art.Open "select * from Documents where IdNum='" & no.Caption & "'", conn, 3, 3
+    Set art = documents.Where("`IdNum` = ?", no.Caption)
 
-    If art.RecordCount = 0 Then MsgBox "失败！", , "记录不存在": art.Close: Exit Sub
-    art.Fields("Class") = section.Text
-    art.Update
-    art.Close
+    If art.RecordCount = 0 Then
+       MsgBox "失败！", , "记录不存在"
+       adh.ReleaseRecordset art
+       Exit Sub
+    End If
+    adh.ReleaseRecordset art
+    eDocument.TransferToClass section.Text, no.Caption
     MsgBox "分类转移成功！", vbInformation, "成功"
 End Sub
 
 Private Sub Command2_Click()
 
-    Dim url As String
+  Dim url As String
+  Dim IdNum As String
+  IdNum = no.Caption
+  If IdNum = "" Then Exit Sub
 
-    If no.Caption = "" Then Exit Sub
-    Set res = New ADODB.Recordset
-    res.Open "select * from Documents where IdNum='" & no.Caption & "'", conn, 3, 3
+  Set res = documents.Where("`IdNum` = ?", no.Caption)
 
-    If res.RecordCount = 0 Then res.Close: Exit Sub
-    url = res.Fields("Source")
-    res.Close
+  If res.RecordCount = 0 Then
+    adh.ReleaseRecordset res
+    Exit Sub
+  End If
+  url = res.fields("Source")
+  adh.ReleaseRecordset res
 
-    If Len(url) > 10 Then
-        If LCase(Mid(url, 1, 4)) = "http" Then
-            Call OpenURL(url)
-
-            Exit Sub
-
-        End If
+  If Len(url) > 10 Then
+    If LCase(Mid(url, 1, 4)) = "http" Then
+      Call OpenURL(url)
+      Exit Sub
     End If
+  End If
 
-    MsgBox "数据非网页地址，内容如下：" & vbCrLf & url
+  MsgBox "数据非网页地址，内容如下：" & vbCrLf & url
 End Sub
 
 Private Sub DeleteA_Click() 'ok at 11-10-28
-
-    If no.Caption = "" Then Exit Sub
-    Set art = New ADODB.Recordset
-    art.Open "delete * from Documents where IdNum='" & no.Caption & "'", conn, 3, 3
-    title.Text = ""
-    adder.Text = ""
-    addtime.Text = ""
-    fenlei.Caption = ""
-    no.Caption = ""
-    section.Clear
-    Call Service("RefreshClass")
-    Call Service("RefreshDocuments")
+  If no.Caption = "" Then Exit Sub
+  'delete
+  eDocument.Delete no.Caption
+  'reset form
+  title.Text = ""
+  adder.Text = ""
+  addtime.Text = ""
+  fenlei.Caption = ""
+  no.Caption = ""
+  section.Clear
+  Call Service("RefreshClass")
+  Call Service("RefreshDocuments")
 End Sub
 
 Private Sub List1_Click()
-    Call ArticleById(List2.List(List1.ListIndex))
+  Call ArticleById(List2.List(List1.ListIndex))
 End Sub
 
 Function ClsArticle()
-    title.Text = ""
-    adder.Text = ""
-    addtime.Text = ""
-    no.Caption = ""
-    contents.Text = ""
-    Remark.Text = ""
+  title.Text = ""
+  adder.Text = ""
+  addtime.Text = ""
+  no.Caption = ""
+  contents.Text = ""
+  Remark.Text = ""
 End Function

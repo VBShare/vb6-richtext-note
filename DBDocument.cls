@@ -12,15 +12,17 @@ Attribute VB_Creatable = True
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-Implements DbModel
+Implements DBModel
 'Private
 Private m_TableName As String
 Private m_TableFields As String
-Private m_DBM As New DbModel
+Private m_DBM As New DBModel
 Private m_UserName As String
+Private m_IsChain As Boolean
 
 
 Private Sub Class_Initialize()
+  m_IsChain = False
   m_TableName = "Documents"
   m_TableFields = "Topic:text,AddTime:date,Remark:text," & _
   "Source:text,Class:string,IdNum:string," & _
@@ -51,3 +53,45 @@ End Function
 Public Function FindByID(ByVal IdNum As String) As ADODB.Recordset
   Set FindByID = m_DBM.Db.ExecParamQuery("select Topic,auser,AddTime,Class,IdNum,Content,Remark from Documents where IdNum = ? and auser = ?", IdNum, m_UserName)
 End Function
+
+Public Function FindByClassAndName(ByVal ClassName As String, ByVal UserName As String) As ADODB.Recordset
+  Set FindByClassAndName = m_DBM.Db.ExecParamQuery("select * from Documents where Class = ? and auser = ?", ClassName, UserName)
+End Function
+
+Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
+  Dim sql As String
+  If Len(Conditions) = 0 Then
+    sql = "select * from " & m_TableName
+  Else
+    sql = "select * from " & m_TableName & " where " & Conditions
+  End If
+  Set DBModel_Where = Db.ExecParamQuery(sql, Params)
+End Function
+
+Public Sub TransferToClass(ByVal ClassName As String, ByVal IdNum As String)
+  m_DBM.Db.ExecParamNonQuery "Update Documents Set `Class` = ? Where `IdNum` = ?", ClassName, IdNum
+End Sub
+
+Public Sub Delete(ByVal IdNum As String)
+  m_DBM.Db.ExecParamNonQuery "Delete From `Documents` Where `IdNum` = ?;", IdNum
+End Sub
+
+Public Sub Create(ByVal Topic As String, _
+                  ByRef Content() As Byte, _
+                  ByVal Source As String, _
+                  ByVal ClassName As String, _
+                  ByVal IdNum As String, _
+                  ByVal UserName As String, _
+                  ByVal txtContent As String)
+  Dim sql As String
+  Dim AddTime As String, Remark As String
+  AddTime = Format(Date, "yyyy-mm-dd")
+  Remark = "NULL"
+  
+  sql = "INSERT INTO `Documents` (`Topic`, `AddTime`, `Remark`, `Source`," & _
+        "`Class`, `IdNum`, `auser`, `Content`, `txtContent`) VALUES (" & _
+        "?, ?, ?, ?," & _
+        "?, ?, ?, ?, ?);"
+  m_DBM.Db.ExecParamNonQuery sql, Topic, AddTime, Remark, Source, _
+                              ClassName, IdNum, UserName, Content, txtContent
+End Sub

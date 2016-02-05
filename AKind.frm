@@ -98,38 +98,22 @@ Private Sub Command2_Click() 'ok at 11-11-06
     Call Service("SectionKey")
 End Sub
 
-Function AddRelate(ByVal keyword As String, sections As String) 'ok at 11-11-06
-    '
-    Set res = New ADODB.Recordset
-    res.Open "select * from Relate where keyword='" & keyword & "'", conn, 3, 3
-
-    If res.RecordCount > 0 Then MsgBox "相同关键字存在，请勿重复添加", vbCritical, "提醒": res.Close: Exit Function
-    res.Close
-
-    'begin add
-    Set res = New ADODB.Recordset
-    res.Open "Relate", conn, 3, 3
-
-    With res
-        .AddNew
-        .Fields("keyword") = keyword
-        .Fields("section") = sections
-        .Update
-    End With
-
-    res.Close
+Function AddRelate(ByVal Keyword As String, Sections As String) 'ok at 11-11-06
+  If eRelate.KeywordExist(Keyword) Then
+    MsgBox "相同关键字存在，请勿重复添加", vbCritical, "提醒"
+    Exit Function
+  Else
+    eRelate.Create Keyword, Sections
+  End If
 End Function
 
-Function DelRelate(ByVal keyword As String, sections As String) 'ok at 11-11-06
-    Set res = New ADODB.Recordset
-    res.Open "delete * from Relate where section='" & sections & "' and keyword='" & keyword & "'", conn, 3, 3
+Function DelRelate(ByVal Keyword As String, Section As String) 'ok at 11-11-06
+  eRelate.RemoveRelate Section, Keyword
 End Function
 
-Function DelClass(ByVal clsname As String) 'ok at 11-12-07
-    Set res = New ADODB.Recordset
-    res.Open "delete * from ClassOf where className='" & clsname & "'", conn, 3, 3
-    Set res = New ADODB.Recordset
-    res.Open "delete * from Relate where section='" & clsname & "'", conn, 3, 3
+Function DelClass(ByVal ClsName As String) 'ok at 11-12-07
+  eRelate.RemoveRelateOfClass ClsName
+  eClassOf.RemoveClass ClsName
 End Function
 
 Private Sub Command3_Click()
@@ -144,31 +128,35 @@ Private Sub List1_Click() 'ok at 11-11-06
 
     If List1.ListCount < 0 Then Exit Sub
     List2.Clear
-    Set res = New ADODB.Recordset
-    res.Open "select * from Relate where [section]='" & List1.List(List1.ListIndex) & "'", conn, adOpenStatic, adLockOptimistic
-
-    If res.RecordCount = 0 Then res.Close: Exit Sub
+    Set res = eRelate.OfClass(List1.List(List1.ListIndex))
+    
+    If res.RecordCount = 0 Then
+      adh.ReleaseRecordset res
+      Exit Sub
+    End If
 
     Do While Not res.EOF = True
-        List2.AddItem res.Fields("keyword")
-        res.MoveNext
+      List2.AddItem res.fields("keyword")
+      res.MoveNext
     Loop
 
-    res.Close
+    adh.ReleaseRecordset res
 End Sub
 
 Function RefreshKind() 'ok at 11-11-06
     List1.Clear
     List2.Clear
-    Set res = New ADODB.Recordset
-    res.Open "ClassOf", conn, 3, 3
+    Set res = eClassOf.All
 
-    If res.RecordCount = 0 Then res.Close: Exit Function
+    If res.RecordCount = 0 Then
+      adh.ReleaseRecordset res
+      Exit Function
+    End If
 
     Do While Not res.EOF = True
-        List1.AddItem res.Fields("className")
-        res.MoveNext
+      List1.AddItem res.fields("className")
+      res.MoveNext
     Loop
 
-    res.Close
+    adh.ReleaseRecordset res
 End Function

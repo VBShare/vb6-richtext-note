@@ -405,49 +405,47 @@ Private Declare Function SendMessage _
 Private Const WM_PASTE = &H302
 Function LoadArticle(ByVal user As String) 'ok at 11-10-29
 'done rewrite
-    '清理
-    Dim k As Integer
+  '清理
+  Dim k As Integer
 
-    List1.Clear
-    List2.Clear
-    title.Text = ""
-    adder.Text = ""
-    addtime.Text = ""
-    section.Caption = ""
-    contents.Text = ""
-    '添加所有的文章到列表
-    Set art = eDocument.OfUser(user).All
-    If art.RecordCount = 0 Then
-      adh.ReleaseRecordset art
-      Exit Function
-    End If
-    art.MoveFirst
+  List1.Clear
+  List2.Clear
+  title.Text = ""
+  adder.Text = ""
+  addtime.Text = ""
+  section.Caption = ""
+  contents.Text = ""
+  '添加所有的文章到列表
+  Set art = eDocument.OfUser(user).All
+  If art.RecordCount = 0 Then
+    adh.ReleaseRecordset art
+    Exit Function
+  End If
+  art.MoveFirst
 
-    Do While Not art.EOF = True
-
-        If k = 10 Then
-
-            DoEvents
-            k = 0
-        Else
-            List1.AddItem art.fields("Topic")
-            List2.AddItem art.fields("IdNum")
-            k = k + 1
-        End If
-
-        art.MoveNext
-
+  Do While Not art.EOF = True
+    If k = 10 Then
         DoEvents
-    Loop
+        k = 0
+    Else
+        List1.AddItem art.fields("Topic")
+        List2.AddItem art.fields("IdNum")
+        k = k + 1
+    End If
 
-    documents.Db.ReleaseRecordset art
+    art.MoveNext
+
+    DoEvents
+  Loop
+
+  adh.ReleaseRecordset art
 End Function
 
 Function ArticleById(ByVal IdNum As String)
   Set art = eDocument.FindByID(IdNum)
 
   If art.RecordCount = 0 Then
-    documents.Db.ReleaseRecordset art
+    adh.ReleaseRecordset art
     MsgBox "未知错误！"
     Exit Function
   End If
@@ -465,106 +463,101 @@ Function ArticleById(ByVal IdNum As String)
     Remark.Text = CNull(.fields("Remark"))
   End With
 
-  documents.Db.ReleaseRecordset art
+  adh.ReleaseRecordset art
 End Function
 
 Private Sub AutoTextConv_Click()
 
-    Dim objRTB As RichTextLib.RichTextBox
+  Dim objRTB As RichTextLib.RichTextBox
 
-    Dim i      As Long
+  Dim i      As Long
 
-    Dim total  As Long
+  Dim total  As Long
 
-    Set objRTB = Controls.Add("RICHTEXT.RichtextCtrl.1", "rtxt")
-    Set rartxt = New ADODB.Recordset
-    rartxt.Open "select * from Documents where txtContent is Null", conn, adOpenStatic, adLockOptimistic
+  Set objRTB = Controls.Add("RICHTEXT.RichtextCtrl.1", "rtxt")
+  Set rartxt = New ADODB.Recordset
+  rartxt.Open "select * from Documents where txtContent is Null", conn, adOpenStatic, adLockOptimistic
 
-    If rartxt.RecordCount = 0 Then rartxt.Close: Exit Sub
-    total = rartxt.RecordCount
+  If rartxt.RecordCount = 0 Then rartxt.Close: Exit Sub
+  total = rartxt.RecordCount
 
-    Do While Not rartxt.EOF
-        i = i + 1
-        objRTB.TextRTF = rartxt.fields("Content")
-        rartxt.fields("txtContent") = CStr(objRTB.Text)
-        rartxt.Update
+  Do While Not rartxt.EOF
+      i = i + 1
+      objRTB.TextRTF = rartxt.fields("Content")
+      rartxt.fields("txtContent") = CStr(objRTB.Text)
+      rartxt.Update
 
-        DoEvents
-        sm "转换进度：" & i & "/" & total, "show"
-        'DoEvents
-        rartxt.MoveNext
-    Loop
+      DoEvents
+      sm "转换进度：" & i & "/" & total, "show"
+      'DoEvents
+      rartxt.MoveNext
+  Loop
 
-    rartxt.Close
-    sm "", "hide"
+  rartxt.Close
+  sm "", "hide"
 End Sub
 
 Private Sub bolds_Click()
-
-    'contents.SetFocus
-    If contents.SelText = "" Then contents.SetFocus: Exit Sub
-    contents.SelBold = Not contents.SelBold
-    contents.SetFocus
+  'contents.SetFocus
+  If contents.SelText = "" Then contents.SetFocus: Exit Sub
+  contents.SelBold = Not contents.SelBold
+  contents.SetFocus
 End Sub
 
 Private Sub Combo1_Click()
+  If Combo1.Text = "" Then Exit Sub
+  List1.Clear
+  List2.Clear
+  'begin
+  Set res = documents.Where("`Class` = ? And `auser` = ?", Combo1.Text, nowLogin)
+  If res.RecordCount = 0 Then
+    adh.ReleaseRecordset res
+    Exit Sub
+  End If
 
-    If Combo1.Text = "" Then Exit Sub
-    List1.Clear
-    List2.Clear
-    'begin
-    Set res = New ADODB.Recordset
-    res.Open "select * from Documents where Class='" & Combo1.Text & "' and auser='" & nowLogin & "'", conn, 3, 3
+  Do While Not res.EOF = True
+    List1.AddItem CNull(res.fields("Topic"))
+    List2.AddItem CNull(res.fields("IdNum"))
+    res.MoveNext
+  Loop
 
-    If res.RecordCount = 0 Then res.Close: Exit Sub
-
-    Do While Not res.EOF = True
-        List1.AddItem CNull(res.fields("Topic"))
-        List2.AddItem CNull(res.fields("IdNum"))
-        res.MoveNext
-    Loop
-
-    res.Close
-    List1.ListIndex = 0
-    LastOne.Enabled = False
+  adh.ReleaseRecordset res
+  List1.ListIndex = 0
+  LastOne.Enabled = False
 End Sub
 
 Private Sub Combo2_Click()
-    contents.SetFocus
+  contents.SetFocus
 
-    If contents.SelText = "" Then Exit Sub
-    contents.SelFontName = Combo2.Text
+  If contents.SelText = "" Then Exit Sub
+  contents.SelFontName = Combo2.Text
 End Sub
 
 Private Sub Combo3_Change()
-    contents.SetFocus
+  contents.SetFocus
 
-    If contents.SelText = "" Then Exit Sub
-    contents.SelFontSize = Combo3.Text
+  If contents.SelText = "" Then Exit Sub
+  contents.SelFontSize = Combo3.Text
 End Sub
 
 Private Sub Combo3_Click()
-    contents.SetFocus
-    contents.SelFontSize = Combo3.Text
+  contents.SetFocus
+  contents.SelFontSize = Combo3.Text
 End Sub
 
 Private Sub Command1_Click() 'cancel autologin sign ok at 11-10-29
-    Set res = New ADODB.Recordset
-    res.Open "select * from Users where uName='" & nowLogin & "'", conn, 3, 3
-    res.fields("isUsed") = False
-    res.Update
-    res.Close
+  users.Db.ExecParamNonQuery "UPDATE Users Set isUsed = false Where uName = ?", nowLogin
 End Sub
 
 Private Sub Command2_Click() 'ok at 11-10-29
-    Call ArticleEdit.LoadArticle(nowLogin)
-    Call ArticleEdit.RefreshClass
-    ArticleEdit.Show 1
+  Call ArticleEdit.LoadArticle(nowLogin)
+  Call ArticleEdit.RefreshClass
+  ArticleEdit.Show 1
 End Sub
 
 Private Sub Command3_Click()
-    Call SearchMe.clean
-    SearchMe.Show
+  Call SearchMe.clean
+  SearchMe.Show
 End Sub
 
 Private Sub Command5_Click()
@@ -576,36 +569,40 @@ Private Sub Command6_MouseDown(Button As Integer, _
                                Shift As Integer, _
                                x As Single, _
                                y As Single)
-    Picture1.Picture = Clipboard.GetData
-    Clipboard.SetData Picture1.Picture
-    contents.SetFocus
-    'contents.SelStart = Len(contents.Text)
-    'SendMessage contents.hwnd, WM_PASTE, 0, 0
-    SendKeys "^V"
+  Picture1.Picture = Clipboard.GetData
+  Clipboard.SetData Picture1.Picture
+  contents.SetFocus
+  Dim paste As Object
+  Set paste = CreateObject("WScript.shell")
+  paste.SendKeys "^V"
+  Set paste = Nothing
 End Sub
 
 Private Sub Command7_Click()
 
-    Dim url As String
+  Dim url As String
 
-    If no.Caption = "" Then Exit Sub
-    Set res = New ADODB.Recordset
-    res.Open "select * from Documents where IdNum='" & no.Caption & "'", conn, 3, 3
+  If no.Caption = "" Then Exit Sub
+  Set res = documents.Where("IdNum = ? and 1 = ?", no.Caption, 1)
 
-    If res.RecordCount = 0 Then res.Close: Exit Sub
-    url = res.fields("Source")
-    res.Close
+  If res.RecordCount = 0 Then
+    adh.ReleaseRecordset res
+    Exit Sub
+  End If
 
-    If Len(url) > 10 Then
-        If LCase(Mid(url, 1, 4)) = "http" Then
-            Call OpenURL(url)
+  url = res.fields("Source")
+  adh.ReleaseRecordset res
 
-            Exit Sub
+  If Len(url) > 10 Then
+    If LCase(Mid(url, 1, 4)) = "http" Then
+      Call OpenURL(url)
 
-        End If
+      Exit Sub
+
     End If
+  End If
 
-    MsgBox "数据非网页地址，内容如下：" & vbCrLf & url
+  MsgBox "数据非网页地址，内容如下：" & vbCrLf & url
 End Sub
 
 Private Sub contents_KeyDown(KeyCode As Integer, Shift As Integer)
@@ -727,34 +724,22 @@ End Sub
 
 Private Sub SaveChange_Click() 'ok at 11-10-28
     '2012-11-05 增加保存到文本内容，提供检索
+    Dim sql As String
     contents.SetFocus
 
     Dim b() As Byte
 
-    If Trim(no.Caption) = "" Then MsgBox "我了歌曲，你没有打开文章，怎么编辑？怎么保存？！！": Exit Sub
+    If Trim(no.Caption) = "" Then MsgBox "我了个去，你没有打开文章，怎么编辑？怎么保存？！！": Exit Sub
     If contents.Text = "" Then MsgBox "请填写内容", , "别坑爹了": Exit Sub
     'ready to save
     Call sm("正在保存……", "show")
 
     DoEvents
     b = contents.TextRTF
-    
-    Set res = New ADODB.Recordset
-    res.Open "select * from Documents where IdNum='" & no.Caption & "'", conn, 3, 3
 
-    With res
+    sql = "Update `Documents` Set `Content` = ?, `txtContent` = ?, `Remark` = ? Where `IdNum` = ?"
+    documents.Db.ExecParamNonQuery sql, b, contents.Text, IIf(Len(Remark.Text) > 0, Remark.Text, "暂无评论"), no.Caption
 
-        DoEvents
-        .fields("Content") = b
-        .fields("txtContent") = contents.Text '2012-11-05添加，为了提供全文搜索功能
-        .fields("Remark") = IIf(Len(Remark.Text) > 0, Remark.Text, "暂无评论")
-
-        DoEvents
-        .Update
-    End With
-
-    res.Close
-    'Call Service("InputArticle")
     Call sm("", "hide")
 End Sub
 
@@ -788,17 +773,18 @@ End Sub
 
 Function RefreshClass() 'ok at 11-10-28
     Combo1.Clear
-    Set res = New ADODB.Recordset
-    res.Open "select className from ClassOf where userName='" & nowLogin & "'", conn, adOpenStatic, adLockOptimistic
-
-    If res.RecordCount = 0 Then res.Close: Exit Function
+    Set res = class_ofs.Db.ExecParamQuery("select `className` from `ClassOf` where `userName` = ?", nowLogin)
+    If res.RecordCount = 0 Then
+      adh.ReleaseRecordset res
+      Exit Function
+    End If
 
     Do While Not res.EOF = True
         Combo1.AddItem CNull(res.fields("className"))
         res.MoveNext
     Loop
 
-    res.Close
+    adh.ReleaseRecordset res
     
     Combo3.Clear
 

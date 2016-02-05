@@ -93,51 +93,47 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Private Sub Command1_Click()
-    title.SetFocus
+  Title.SetFocus
 
-    Dim sql As String
+  Dim sql As String
 
-    sql = "select * from Documents where"
+  sql = "select * from Documents where"
 
-    If title = "" Then
-        If content.Text = "" Then
-            MsgBox "请填写至少一项"
-
-            Exit Sub
-
-        Else
-            sql = sql & " txtContent Like '%" & ReWindDoc(content.Text) & "%' and auser='" & nowLogin & "'"
-        End If
-
+  If Title = "" Then
+    If Content.Text = "" Then
+      MsgBox "请填写至少一项"
+      Exit Sub
     Else
-
-        If content.Text = "" Then
-            sql = sql & " Topic Like '%" & ReWindDoc(title.Text) & "%' and auser='" & nowLogin & "'"
-        Else
-            sql = sql & " txtContent Like '%" & ReWindDoc(content.Text) & "%' and Topic Like '%" & ReWindDoc(title.Text) & "%' and auser='" & nowLogin & "'"
-        End If
+      sql = sql & " txtContent Like '%" & ReWindDoc(Content.Text) & "%' and auser='" & nowLogin & "'"
     End If
+  Else
+    If Content.Text = "" Then
+      sql = sql & " Topic Like '%" & ReWindDoc(Title.Text) & "%' and auser='" & nowLogin & "'"
+    Else
+      sql = sql & " txtContent Like '%" & ReWindDoc(Content.Text) & "%' and Topic Like '%" & ReWindDoc(Title.Text) & "%' and auser='" & nowLogin & "'"
+    End If
+  End If
 
-    Set res = New ADODB.Recordset
-    res.Open sql, conn, 3, 3
+  Set res = documents.Db.ExecQuery(sql)
+  res.Open sql, conn, 3, 3
 
-    If res.RecordCount = 0 Then MsgBox "未搜索到相似信息！": res.Close: Exit Sub
-    Article.List1.Clear
-    Article.List2.Clear
+  If res.RecordCount = 0 Then MsgBox "未搜索到相似信息！": res.Close: Exit Sub
+  Article.List1.Clear
+  Article.List2.Clear
 
-    Do While Not res.EOF = True
+  Do While Not res.EOF = True
 
-        With Article
-            .List1.AddItem res.Fields("Topic")
-            .List2.AddItem res.Fields("IdNum")
-        End With
+      With Article
+          .List1.AddItem res.fields("Topic")
+          .List2.AddItem res.fields("IdNum")
+      End With
 
-        res.MoveNext
-    Loop
+      res.MoveNext
+  Loop
 
-    res.Close
-    Article.List1.ListIndex = 0
-    Article.LastOne.Enabled = False
+  res.Close
+  Article.List1.ListIndex = 0
+  Article.LastOne.Enabled = False
 End Sub
 
 Private Sub Command2_Click()
@@ -153,7 +149,7 @@ Function clean()
 
     On Error Resume Next
 
-    title.Text = ""
-    content.Text = ""
-    title.SetFocus
+    Title.Text = ""
+    Content.Text = ""
+    Title.SetFocus
 End Function

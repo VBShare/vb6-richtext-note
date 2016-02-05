@@ -167,6 +167,8 @@ Public Function ExecParamQuery(ByVal SqlStr As String, _
     Dim tempRes As New ADODB.Recordset
 
     Dim i       As Long
+    
+    Dim paramArr As Variant
 
     Set m_Command = New ADODB.Command
     '打开连接
@@ -174,11 +176,18 @@ Public Function ExecParamQuery(ByVal SqlStr As String, _
     m_Command.ActiveConnection = m_Conn
     m_Command.CommandText = SqlStr
     m_Command.CommandType = adCmdText
+    
+    '过滤嵌套情况
+    paramArr = Params
+    If VarType(Params(0)) = 8204 Then
+      paramArr = Params(0)
+    End If
 
     '设置参数
     With m_Command
+    
 
-        For Each param In Params
+        For Each param In paramArr
 
             Dim Para As ADODB.Parameter
 
@@ -258,6 +267,8 @@ Public Function ExecParamNonQuery(ByVal SqlStr As String, ParamArray Params()) A
     Dim i            As Long
 
     Dim affectedRows As Long
+    
+    Dim paramArr As Variant
 
     Set m_Command = New ADODB.Command
     '打开连接
@@ -265,11 +276,15 @@ Public Function ExecParamNonQuery(ByVal SqlStr As String, ParamArray Params()) A
     m_Command.ActiveConnection = m_Conn
     m_Command.CommandText = SqlStr
     m_Command.CommandType = adCmdText
-
+    '过滤嵌套情况
+    paramArr = Params
+    If VarType(Params(0)) = 8204 Then
+      paramArr = Params(0)
+    End If
     '设置参数
     With m_Command
 
-        For Each param In Params
+        For Each param In paramArr
 
             Dim Para As ADODB.Parameter
 
@@ -403,7 +418,7 @@ Public Function ExecParamQueryScalar(ByVal SqlStr As String, _
 
     Dim tmpRes    As ADODB.Recordset
 
-    Set tmpRes = ExecParamQuery(SqlStr, Params(0))
+    Set tmpRes = ExecParamQuery(SqlStr, Params)
 
     If tmpRes.RecordCount <= 0 Then
         Set ExecParamQueryScalar = Nothing

@@ -1,5 +1,5 @@
 VERSION 5.00
-Object = "{3B7C8863-D78F-101B-B9B5-04021C009402}#1.2#0"; "Richtx32.ocx"
+Object = "{3B7C8863-D78F-101B-B9B5-04021C009402}#1.2#0"; "RICHTX32.OCX"
 Object = "{F9043C88-F6F2-101A-A3C9-08002B2F49FB}#1.2#0"; "COMDLG32.OCX"
 Begin VB.Form NewArticle 
    Caption         =   "新的文章"
@@ -315,28 +315,30 @@ Function RefreshClass() 'ok at 11-10-28
 
     If nowLogin = "" Then Exit Function
     section.Clear
-    Set res = New ADODB.Recordset
-    res.Open "select * from ClassOf where userName='" & nowLogin & "'", conn, adOpenStatic, adLockOptimistic
+    Set res = class_ofs.Where("`userName` = ?", nowLogin)
 
-    If res.RecordCount = 0 Then res.Close: section.AddItem "新增分类": Exit Function
+    If res.RecordCount = 0 Then
+      adh.ReleaseRecordset res
+      section.AddItem "新增分类"
+      Exit Function
+    End If
 
     Do While Not res.EOF = True
-        section.AddItem CNull(res.Fields("className"))
-        res.MoveNext
+      section.AddItem CNull(res.fields("className"))
+      res.MoveNext
     Loop
 
     section.AddItem "新增分类"
-    res.Close
+    adh.ReleaseRecordset res
     Combo2.Clear
 
     For i = 0 To Screen.FontCount - 1
-        Combo2.AddItem Screen.Fonts(i)
+      Combo2.AddItem Screen.Fonts(i)
     Next i
 
     For i = 1 To 72
-        Combo3.AddItem i
+      Combo3.AddItem i
     Next i
-
 End Function
 
 Private Sub bolds_Click()
@@ -440,90 +442,77 @@ Private Sub mnSelectAll_Click() 'ok at 12-02-10
 End Sub
 
 Private Sub SaveMore_Click() 'ok at 11-10-30
+  Dim sTitle As String
+  Dim bContent() As Byte
+  Dim sTxtContent As String
+  Dim sAddTime As String
+  Dim sSource As String
+  Dim sClassName As String
+  Dim sIdNum As String
+  Dim sUserName As String
+  
+  sTitle = Title.Text
+  bContent = contents.TextRTF
+  sTxtContent = contents.Text
+  sAddTime = Format(Date, "yyyy-mm-dd")
+  sSource = ReWindDoc(sourcein.Text)
+  sClassName = section.Text
+  sIdNum = no.Caption
+  sUserName = ReWind(adder.Text)
 
-    Dim b() As Byte
-
-    If title.Text = "" Then MsgBox "请填写标题": Exit Sub
-    If section.Text = "新增分类" Then MsgBox "请选择或者新增分类": Exit Sub
-    If sourcein.Text = "" Then MsgBox "请填写资料来源（网址或来源人）": Exit Sub
-    If contents.Text = "" Then MsgBox "请填写内容", , "别坑爹了": Exit Sub
-    'ready to save
-    Set res = New ADODB.Recordset
-    res.Open "Documents", conn, 3, 3
-
-    With res
-        .AddNew
-        .Fields("Topic") = ReWind(title.Text)
-        Call sm("保存中……", "show")
-
-        DoEvents
-        b = contents.TextRTF
-
-        DoEvents
-        .Fields("Content") = b
-        .Fields("AddTime") = Format(Date, "yyyy-mm-dd")
-        .Fields("Source") = ReWindDoc(sourcein.Text)
-        .Fields("Class") = section.Text
-        .Fields("Remark") = "NULL"
-        .Fields("IdNum") = no.Caption
-        .Fields("auser") = ReWind(adder.Text)
-        .Fields("txtContent") = contents.Text
-        .Update
-    End With
-
-    res.Close
-    Call sm("", "hide")
-    'reseting
-    title.Text = ""
-    adder.Text = nowLogin
-    addtime.Text = Format(Date, "yyyy-mm-dd")
-    Call RefreshClass
-    no.Caption = Format(Date, "yyyymmdd") & Format(Time, "hhmmss")
-    sourcein.Text = ""
-    contents.Text = ""
-    title.SetFocus
-    Call Article.LoadArticle(nowLogin)
+  If sTitle = "" Then MsgBox "请填写标题": Exit Sub
+  If sClassName = "新增分类" Then MsgBox "请选择或者新增分类": Exit Sub
+  If sSource = "" Then MsgBox "请填写资料来源（网址或来源人）": Exit Sub
+  If sTxtContent = "" Then MsgBox "请填写内容", , "别坑爹了": Exit Sub
+  'ready to save
+  Call sm("保存中……", "show")
+  eDocument.Create stopic, bContent, sSource, sClassName, sIdNum, sUserName, sTxtContent
+  Call sm("", "hide")
+  'reseting
+  Title.Text = ""
+  adder.Text = nowLogin
+  AddTime.Text = Format(Date, "yyyy-mm-dd")
+  Call RefreshClass
+  no.Caption = Format(Date, "yyyymmdd") & Format(Time, "hhmmss")
+  sourcein.Text = ""
+  contents.Text = ""
+  Title.SetFocus
+  Call Article.LoadArticle(nowLogin)
 End Sub
 
 Private Sub SaveReturn_Click() 'ok at 11-10-30
 
-    Dim b() As Byte
+  Dim sTitle As String
+  Dim bContent() As Byte
+  Dim sTxtContent As String
+  Dim sAddTime As String
+  Dim sSource As String
+  Dim sClassName As String
+  Dim sIdNum As String
+  Dim sUserName As String
+  
+  sTitle = Title.Text
+  bContent = contents.TextRTF
+  sTxtContent = contents.Text
+  sAddTime = Format(Date, "yyyy-mm-dd")
+  sSource = ReWindDoc(sourcein.Text)
+  sClassName = section.Text
+  sIdNum = no.Caption
+  sUserName = ReWind(adder.Text)
 
-    If title.Text = "" Then MsgBox "请填写标题": Exit Sub
-    If section.Text = "新增分类" Then MsgBox "请选择或者新增分类": Exit Sub
-    If sourcein.Text = "" Then MsgBox "请填写资料来源（网址或来源人）": Exit Sub
-    If contents.Text = "" Then MsgBox "请填写内容", , "别坑爹了": Exit Sub
-    'ready to save
-    Set res = New ADODB.Recordset
-    res.Open "Documents", conn, 3, 3
-
-    DoEvents
-    Call sm("正在保存……", "show")
-    b = contents.TextRTF
-
-    DoEvents
-
-    With res
-        .AddNew
-        .Fields("Topic") = ReWind(title.Text)
-        .Fields("AddTime") = Format(Date, "yyyy-mm-dd")
-        .Fields("Source") = ReWindDoc(sourcein.Text)
-        .Fields("Class") = section.Text
-        .Fields("Remark") = "NULL"
-        .Fields("IdNum") = no.Caption
-        .Fields("auser") = ReWind(adder.Text)
-        .Fields("Content") = b
-        .Fields("txtContent") = contents.Text
-        .Update
-    End With
-
-    res.Close
-
-    DoEvents
-    Call sm("", "hide")
-    Call Article.LoadArticle(nowLogin)
-    Timer1.Enabled = False
-    Me.Hide
+  If sTitle = "" Then MsgBox "请填写标题": Exit Sub
+  If sClassName = "新增分类" Then MsgBox "请选择或者新增分类": Exit Sub
+  If sSource = "" Then MsgBox "请填写资料来源（网址或来源人）": Exit Sub
+  If sTxtContent = "" Then MsgBox "请填写内容", , "别坑爹了": Exit Sub
+  'ready to save
+  DoEvents
+  Call sm("保存中……", "show")
+  eDocument.Create stopic, bContent, sSource, sClassName, sIdNum, sUserName, sTxtContent
+  DoEvents
+  Call sm("", "hide")
+  Call Article.LoadArticle(nowLogin)
+  Timer1.Enabled = False
+  Me.Hide
 End Sub
 
 Private Sub scolor_Click()
@@ -569,15 +558,15 @@ Function Init() 'ok at 11-10-28
 
     On Error Resume Next
 
-    title.Text = ""
+    Title.Text = ""
     adder.Text = nowLogin
-    addtime.Text = Format(Date, "yyyy-mm-dd")
+    AddTime.Text = Format(Date, "yyyy-mm-dd")
     Call RefreshClass
     no.Caption = Format(Date, "yyyymmdd") & Format(Time, "hhmmss")
     sourcein.Text = ""
     contents.Text = ""
     Timer1.Enabled = True
-    title.SetFocus
+    Title.SetFocus
 End Function
 
 Function sm(sMsg As String, choice As String)
@@ -592,9 +581,9 @@ Function sm(sMsg As String, choice As String)
 End Function
 
 Function ClsArticle()
-    title.Text = ""
+    Title.Text = ""
     adder.Text = ""
-    addtime.Text = ""
+    AddTime.Text = ""
     no.Caption = ""
     contents.Text = ""
     Remark.Text = ""
@@ -618,8 +607,8 @@ Private Sub Timer1_Timer()
         If sourcein.Text = "" And Len(s) < 200 And InStr(1, s, "http") = 1 Then
             sourcein.Text = s
             Debug.Print "填充网址"
-        ElseIf title.Text = "" And Len(s) < 100 And InStr(1, s, "http") = 0 Then
-            title.Text = s
+        ElseIf Title.Text = "" And Len(s) < 100 And InStr(1, s, "http") = 0 Then
+            Title.Text = s
             Debug.Print "填充标题"
         ElseIf contents.Text = "" And Len(s) > 10 Then
             contents.Text = s: Call AutoSection(s)

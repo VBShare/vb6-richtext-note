@@ -168,3 +168,6 @@ End Sub
 '//
 '//////////////////////////////////////////////////////////////////////////////
 
+Public Function Where(ByVal Conditions As String, ParamArray Params()) As ADODB.Recordset
+
+End Function

@@ -180,49 +180,33 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub
 
 Function clearAutoSign() 'ok at 11-10-28
-    Set res = New ADODB.Recordset
-    res.Open "Users", conn, 3, 3
-    res.MoveFirst
-
-    If res.RecordCount = 0 Then Exit Function
-
-    Do While Not res.EOF = True
-        res.Fields("isUsed") = False
-        res.Update
-        res.MoveNext
-    Loop
-
-    res.Close
+  users.Db.ExecNonQuery "Update Users Set isUsed = False"
 End Function
 
 Function SaveUserSetting(ByVal user As String) 'ok at 11-10-28
-    Set res = New ADODB.Recordset
-    res.Open "select * from Users where uName='" & user & "'", conn, 3, 3
+  Dim sql As String
+  Dim bAutologin As Boolean
+  Dim bRememberPass As Boolean
 
-    If res.RecordCount = 0 Then Exit Function
-    res.Fields("autologin") = IIf(autologin.Value > 0, True, False)
-    res.Fields("rememberPass") = IIf(remember.Value > 0, True, False)
-    res.Fields("isUsed") = True
-    res.Update
-    res.Close
+  sql = "Update `Users` Set `autologin` = ?, `rememberPass` = ?, `isUsed` = ? Where `uName` = ?"
+  bAutologin = IIf(autologin.Value > 0, True, False)
+  bRememberPass = IIf(remember.Value > 0, True, False)
+
+  users.Db.ExecParamNonQuery sql, bAutologin, bRememberPass, True, user
 End Function
 
 Function ExistUser(ByVal user As String, ByVal pass As String) As Boolean
-    Set res = New ADODB.Recordset
-    res.Open "select * from Users where uName='" & user & "' and uPass='" & ReWind(pass) & "'", conn, 3, 3
-
-    If res.RecordCount = 0 Then ExistUser = False: Exit Function
-    res.Close
+  Dim sql As String
+  sql = "Select Count(*) From Users Where uName = ? And uPass = ?"
+  If users.Db.ExecParamQueryScalar(sql, user, ReWind(pass)) > 0 Then
     ExistUser = True
+  Else
+    ExistUser = False
+  End If
 End Function
 
 Function ExistUserM(ByVal user As String) As Boolean
-    Set res = New ADODB.Recordset
-    res.Open "select * from Users where uName='" & user & "'", conn, 3, 3
-
-    If res.RecordCount = 0 Then ExistUserM = False: Exit Function
-    res.Close
-    ExistUserM = True
+  ExistUserM = eUser.UserExist(user)
 End Function
 
 Private Sub remember_MouseDown(Button As Integer, _
@@ -239,34 +223,31 @@ End Sub
 Private Sub user_Click() 'ok at 11-10-29
 
     If ExistUserM(user.Text) = True Then
-        Call setUserState(user.Text)
+        Call setuserState(user.Text)
     Else
         MsgBox "ÏµÍ³´íÎó£¡", , "Sorry"
     End If
 
 End Sub
 
-Function setUserState(ByVal users As String) 'ok at 11-10-29
-    Set res = New ADODB.Recordset
-    res.Open "select * from Users where uName='" & users & "'", conn, 3, 3
-
-    If res.RecordCount = 0 Then MsgBox "Î´Öª´íÎó": res.Close: Exit Function
-    If res.Fields("autologin") = True Then
-        autologin.Value = 1
-        remember.Value = 1
-        pass.Text = res.Fields("uPass")
-
-        Exit Function
-
+Function setuserState(ByVal user As String) 'ok at 11-10-29
+  If eUser.UserExist(user) Then
+    Set res = users.Where("`uName` = ?", user)
+    If res.fields("autologin") = True Then
+      autologin.Value = 1
+      remember.Value = 1
+      pass.Text = res.fields("uPass")
+      Exit Function
     End If
-
-    If res.Fields("rememberPass") = True Then
-        remember.Value = 1
-        pass.Text = res.Fields("uPass")
+    If res.fields("rememberPass") = True Then
+      remember.Value = 1
+      pass.Text = res.fields("uPass")
     Else
-        remember.Value = 0
-        pass.Text = ""
+      remember.Value = 0
+      pass.Text = ""
     End If
-
+  Else
+    MsgBox "Î´Öª´íÎó"
+  End If
 End Function
 

@@ -93,24 +93,27 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Private Sub Command1_Click()
-  Title.SetFocus
+  title.SetFocus
 
   Dim sql As String
+  Dim Params() As Variant
+  ReDim Params(0)
 
   sql = "select * from Documents where"
 
-  If Title = "" Then
-    If Content.Text = "" Then
+  If title = "" Then
+    If content.Text = "" Then
       MsgBox "请填写至少一项"
       Exit Sub
     Else
-      sql = sql & " txtContent Like '%" & ReWindDoc(Content.Text) & "%' and auser='" & nowLogin & "'"
+      Params(UBound(Params) + 1) = ""
+      sql = sql & " txtContent Like '%" & ReWindDoc(content.Text) & "%' and auser='" & nowLogin & "'"
     End If
   Else
-    If Content.Text = "" Then
-      sql = sql & " Topic Like '%" & ReWindDoc(Title.Text) & "%' and auser='" & nowLogin & "'"
+    If content.Text = "" Then
+      sql = sql & " Topic Like '%" & ReWindDoc(title.Text) & "%' and auser='" & nowLogin & "'"
     Else
-      sql = sql & " txtContent Like '%" & ReWindDoc(Content.Text) & "%' and Topic Like '%" & ReWindDoc(Title.Text) & "%' and auser='" & nowLogin & "'"
+      sql = sql & " txtContent Like '%" & ReWindDoc(content.Text) & "%' and Topic Like '%" & ReWindDoc(title.Text) & "%' and auser='" & nowLogin & "'"
     End If
   End If
 
@@ -149,7 +152,7 @@ Function clean()
 
     On Error Resume Next
 
-    Title.Text = ""
-    Content.Text = ""
-    Title.SetFocus
+    title.Text = ""
+    content.Text = ""
+    title.SetFocus
 End Function

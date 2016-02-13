@@ -59,7 +59,10 @@ End Sub
 
 Sub Main()
     '检查数据库文件是否存在
-    'SkinH_AttachEx App.Path & "\QQ2011.she", "" '最后编译时设置为可见
+    'VarType:8192 is base of array
+
+    SkinH_AttachEx App.Path & "\QQ2011.she", "" '最后编译时设置为可见
+
     Dim DbPath As String
     Dim i As Integer
     DbPath = Replace(App.Path & "\documents.mdb", "\\", "\")
@@ -270,7 +273,7 @@ End Function
 Function AutoSection(ByVal Str As String) 'ok at 11-11-06
   Dim i As Integer
 
-  Set res = adh.ExecQuery("select * from Relate")
+  Set res = relates.Db.ExecQuery("select * from Relate")
 
   If res.RecordCount = 0 Then
       adh.ReleaseRecordset res

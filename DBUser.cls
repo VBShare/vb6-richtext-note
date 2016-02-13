@@ -19,8 +19,7 @@ Private m_TableFields As String
 Private m_DBM As New DBModel
 Private Sub Class_Initialize()
   m_TableName = "Users"
-  m_TableFields = "uName:string,uPass:string,autologin:boolean," & _
-  "rememberPass:boolean,isUsed:boolean"
+  m_TableFields = "uName:string,uPass:string,autologin:boolean,rememberPass:boolean,isUsed:boolean"
 End Sub
 
 Private Property Get DbModel_Db() As AdodbHelper

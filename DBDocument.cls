@@ -87,6 +87,9 @@ Public Sub Create(ByVal Topic As String, _
   Dim addtime As String, Remark As String
   addtime = Format(Date, "yyyy-mm-dd")
   Remark = "NULL"
+  If ClassName = "" Then
+    ClassName = "NULL"
+  End If
   
   sql = "INSERT INTO `Documents` (`Topic`, `AddTime`, `Remark`, `Source`," & _
         "`Class`, `IdNum`, `auser`, `Content`, `txtContent`) VALUES (" & _

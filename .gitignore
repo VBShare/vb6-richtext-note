@@ -1,3 +1,5 @@
 # forbid exe file
 *.exe
+# forbit database file
+documents.mdb
 

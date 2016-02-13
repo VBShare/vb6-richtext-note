@@ -131,7 +131,6 @@ Begin VB.Form NewArticle
          _ExtentX        =   18018
          _ExtentY        =   7858
          _Version        =   393217
-         Enabled         =   -1  'True
          ScrollBars      =   2
          TextRTF         =   $"NewArticle.frx":1272
       End
@@ -451,7 +450,7 @@ Private Sub SaveMore_Click() 'ok at 11-10-30
   Dim sIdNum As String
   Dim sUserName As String
   
-  sTitle = Title.Text
+  sTitle = title.Text
   bContent = contents.TextRTF
   sTxtContent = contents.Text
   sAddTime = Format(Date, "yyyy-mm-dd")
@@ -469,14 +468,14 @@ Private Sub SaveMore_Click() 'ok at 11-10-30
   eDocument.Create stopic, bContent, sSource, sClassName, sIdNum, sUserName, sTxtContent
   Call sm("", "hide")
   'reseting
-  Title.Text = ""
+  title.Text = ""
   adder.Text = nowLogin
-  AddTime.Text = Format(Date, "yyyy-mm-dd")
+  addtime.Text = Format(Date, "yyyy-mm-dd")
   Call RefreshClass
   no.Caption = Format(Date, "yyyymmdd") & Format(Time, "hhmmss")
   sourcein.Text = ""
   contents.Text = ""
-  Title.SetFocus
+  title.SetFocus
   Call Article.LoadArticle(nowLogin)
 End Sub
 
@@ -491,7 +490,7 @@ Private Sub SaveReturn_Click() 'ok at 11-10-30
   Dim sIdNum As String
   Dim sUserName As String
   
-  sTitle = Title.Text
+  sTitle = title.Text
   bContent = contents.TextRTF
   sTxtContent = contents.Text
   sAddTime = Format(Date, "yyyy-mm-dd")
@@ -507,7 +506,7 @@ Private Sub SaveReturn_Click() 'ok at 11-10-30
   'ready to save
   DoEvents
   Call sm("±£¥Ê÷–°≠°≠", "show")
-  eDocument.Create stopic, bContent, sSource, sClassName, sIdNum, sUserName, sTxtContent
+  eDocument.Create sTitle, bContent, sSource, sClassName, sIdNum, sUserName, sTxtContent
   DoEvents
   Call sm("", "hide")
   Call Article.LoadArticle(nowLogin)
@@ -558,15 +557,15 @@ Function Init() 'ok at 11-10-28
 
     On Error Resume Next
 
-    Title.Text = ""
+    title.Text = ""
     adder.Text = nowLogin
-    AddTime.Text = Format(Date, "yyyy-mm-dd")
+    addtime.Text = Format(Date, "yyyy-mm-dd")
     Call RefreshClass
     no.Caption = Format(Date, "yyyymmdd") & Format(Time, "hhmmss")
     sourcein.Text = ""
     contents.Text = ""
     Timer1.Enabled = True
-    Title.SetFocus
+    title.SetFocus
 End Function
 
 Function sm(sMsg As String, choice As String)
@@ -581,9 +580,9 @@ Function sm(sMsg As String, choice As String)
 End Function
 
 Function ClsArticle()
-    Title.Text = ""
+    title.Text = ""
     adder.Text = ""
-    AddTime.Text = ""
+    addtime.Text = ""
     no.Caption = ""
     contents.Text = ""
     Remark.Text = ""
@@ -607,8 +606,8 @@ Private Sub Timer1_Timer()
         If sourcein.Text = "" And Len(s) < 200 And InStr(1, s, "http") = 1 Then
             sourcein.Text = s
             Debug.Print "ÃÓ≥‰Õ¯÷∑"
-        ElseIf Title.Text = "" And Len(s) < 100 And InStr(1, s, "http") = 0 Then
-            Title.Text = s
+        ElseIf title.Text = "" And Len(s) < 100 And InStr(1, s, "http") = 0 Then
+            title.Text = s
             Debug.Print "ÃÓ≥‰±ÍÃ‚"
         ElseIf contents.Text = "" And Len(s) > 10 Then
             contents.Text = s: Call AutoSection(s)

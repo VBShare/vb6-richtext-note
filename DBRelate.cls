@@ -54,13 +54,13 @@ End Property
 Public Sub Create(ByVal Keyword As String, ByVal section As String)
   Dim sql As String
   sql = "Insert Into `Relate`(`keyword`, `section`) values (?, ?)"
-  m_DBM.Db.ExecParamNonQuery sql, Keyword, section
+  m_DBH.ExecParamNonQuery sql, Keyword, section
 End Sub
 
 Public Function KeywordExist(ByVal Keyword As String) As Boolean
   Dim sql As String
   sql = "select count(*) from `Relate` where `keyword` = ?"
-  If m_DBM.Db.ExecParamQueryScalar(sql, Keyword) > 0 Then
+  If m_DBH.ExecParamQueryScalar(sql, Keyword) > 0 Then
     KeywordExist = True
   Else
     KeywordExist = False
@@ -70,19 +70,19 @@ End Function
 Public Sub RemoveRelate(ByVal section As String, ByVal Keyword As String)
   Dim sql As String
   sql = "Delete From `Relate` Where `keyword` = ? And `section` = ?"
-  m_DBM.Db.ExecParamNonQuery sql, Keyword, section
+  m_DBH.ExecParamNonQuery sql, Keyword, section
 End Sub
 
 Public Sub RemoveRelateOfClass(ByVal section As String)
   Dim sql As String
   sql = "Delete From `Relate` Where `section` = ?"
-  m_DBM.Db.ExecParamNonQuery sql, section
+  m_DBH.ExecParamNonQuery sql, section
 End Sub
 
 Public Function OfClass(ByVal section As String) As ADODB.Recordset
   Dim sql As String
   sql = "Select * From `Relate` Where `section` = ?"
-  Set OfClass = m_DBM.Db.ExecParamQuery(sql, section)
+  Set OfClass = m_DBH.ExecParamQuery(sql, section)
 End Function
 
 Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
@@ -92,7 +92,7 @@ Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() A
   Else
     sql = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set DBModel_Where = m_DBM.Db.ExecParamQuery(sql, Params)
+  Set DBModel_Where = m_DBH.ExecParamQuery(sql, Params)
 End Function
 Public Function Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
   Dim sql As String
@@ -101,5 +101,5 @@ Public Function Where(ByVal Conditions As String, ParamArray Params() As Variant
   Else
     sql = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set Where = m_DBM.Db.ExecParamQuery(sql, Params)
+  Set Where = m_DBH.ExecParamQuery(sql, Params)
 End Function

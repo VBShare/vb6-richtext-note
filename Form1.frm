@@ -81,16 +81,16 @@ Begin VB.Form Article
       Width           =   10455
       Begin VB.CommandButton Command7 
          Caption         =   "访问来源"
-         Height          =   405
-         Left            =   8085
+         Height          =   430
+         Left            =   9180
          TabIndex        =   38
          Top             =   960
          Width           =   1155
       End
       Begin VB.CommandButton Command6 
          Caption         =   "粘贴图像"
-         Height          =   375
-         Left            =   6720
+         Height          =   430
+         Left            =   7920
          TabIndex        =   36
          Top             =   960
          Width           =   1215
@@ -114,19 +114,19 @@ Begin VB.Form Article
       End
       Begin VB.ComboBox Combo3 
          Height          =   300
-         Left            =   5280
+         Left            =   6540
          Style           =   2  'Dropdown List
          TabIndex        =   33
-         Top             =   1080
+         Top             =   1040
          Width           =   1335
       End
       Begin VB.ComboBox Combo2 
          Height          =   300
-         Left            =   3360
+         Left            =   3720
          Style           =   2  'Dropdown List
          TabIndex        =   31
-         Top             =   1080
-         Width           =   1335
+         Top             =   1040
+         Width           =   2175
       End
       Begin VB.CommandButton scolor 
          Caption         =   "颜色"
@@ -187,6 +187,7 @@ Begin VB.Form Article
          _ExtentX        =   17806
          _ExtentY        =   9340
          _Version        =   393217
+         Enabled         =   -1  'True
          ScrollBars      =   2
          TextRTF         =   $"Form1.frx":0CCA
       End
@@ -251,7 +252,7 @@ Begin VB.Form Article
       Begin VB.Label Label9 
          Caption         =   "字号"
          Height          =   255
-         Left            =   4800
+         Left            =   6120
          TabIndex        =   32
          Top             =   1080
          Width           =   375
@@ -259,7 +260,7 @@ Begin VB.Form Article
       Begin VB.Label Label8 
          Caption         =   "字体"
          Height          =   255
-         Left            =   2880
+         Left            =   3240
          TabIndex        =   30
          Top             =   1080
          Width           =   375
@@ -772,41 +773,38 @@ Private Sub WArticle_Click() 'ok at 11-10-29
 End Sub
 
 Function RefreshClass() 'ok at 11-10-28
-    Combo1.Clear
-    Set res = eClassOf.Db.ExecParamQuery("select `className` from `ClassOf` where `userName` = ?", nowLogin)
-    If res.RecordCount = 0 Then
-      adh.ReleaseRecordset res
-      Exit Function
-    End If
-
-    Do While Not res.EOF = True
-        Combo1.AddItem CNull(res.fields("className"))
-        res.MoveNext
-    Loop
-
+  Combo3.Clear
+  For i = 1 To 72
+    Combo3.AddItem i
+  Next i
+  
+  Combo2.Clear
+  For i = 0 To Screen.FontCount - 1
+    Combo2.AddItem Screen.Fonts(i)
+  Next i
+  
+  Combo1.Clear
+  Set res = eClassOf.Db.ExecParamQuery("select `className` from `ClassOf` where `userName` = ?", nowLogin)
+  If res.RecordCount = 0 Then
     adh.ReleaseRecordset res
-    
-    Combo3.Clear
+    Exit Function
+  End If
 
-    For i = 1 To 72
-        Combo3.AddItem i
-    Next i
+  Do While Not res.EOF = True
+    Combo1.AddItem CNull(res.fields("className"))
+    res.MoveNext
+  Loop
 
-    For i = 0 To Screen.FontCount - 1
-        Combo2.AddItem Screen.Fonts(i)
-    Next i
-
+  adh.ReleaseRecordset res
 End Function
 
 Function sm(sMsg As String, choice As String) '显示信息
-
     If choice = "hide" Then
         Command4.Visible = False
     ElseIf choice = "show" Then
         Command4.Visible = True
         Command4.Caption = sMsg
     End If
-
 End Function
 
 Function ClsArticle()

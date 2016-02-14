@@ -34,7 +34,7 @@ Begin VB.Form NewArticle
       Begin VB.CommandButton Command2 
          Caption         =   "关闭自动"
          Height          =   375
-         Left            =   6720
+         Left            =   8880
          TabIndex        =   26
          Top             =   1320
          Width           =   1335
@@ -58,10 +58,10 @@ Begin VB.Form NewArticle
       End
       Begin VB.ComboBox Combo3 
          Height          =   300
-         Left            =   5160
+         Left            =   6720
          Style           =   2  'Dropdown List
          TabIndex        =   24
-         Top             =   1440
+         Top             =   1400
          Width           =   1335
       End
       Begin VB.ComboBox Combo2 
@@ -69,8 +69,8 @@ Begin VB.Form NewArticle
          Left            =   3240
          Style           =   2  'Dropdown List
          TabIndex        =   22
-         Top             =   1440
-         Width           =   1335
+         Top             =   1400
+         Width           =   2775
       End
       Begin VB.CommandButton scolor 
          Caption         =   "颜色"
@@ -131,7 +131,6 @@ Begin VB.Form NewArticle
          _ExtentX        =   18018
          _ExtentY        =   7858
          _Version        =   393217
-         Enabled         =   -1  'True
          ScrollBars      =   2
          TextRTF         =   $"NewArticle.frx":1272
       End
@@ -202,7 +201,7 @@ Begin VB.Form NewArticle
       Begin VB.Label Label9 
          Caption         =   "字号"
          Height          =   255
-         Left            =   4680
+         Left            =   6240
          TabIndex        =   23
          Top             =   1440
          Width           =   375
@@ -312,7 +311,16 @@ Private Declare Sub keybd_event _
 
 '添加一个根据内容自动识别分类的功能
 Function RefreshClass() 'ok at 11-10-28
+    Combo2.Clear
 
+    For i = 0 To Screen.FontCount - 1
+      Combo2.AddItem Screen.Fonts(i)
+    Next i
+
+    For i = 1 To 72
+      Combo3.AddItem i
+    Next i
+    
     If nowLogin = "" Then Exit Function
     section.Clear
     Set res = eClassOf.Where("`userName` = ?", nowLogin)
@@ -330,15 +338,7 @@ Function RefreshClass() 'ok at 11-10-28
 
     section.AddItem "新增分类"
     adh.ReleaseRecordset res
-    Combo2.Clear
 
-    For i = 0 To Screen.FontCount - 1
-      Combo2.AddItem Screen.Fonts(i)
-    Next i
-
-    For i = 1 To 72
-      Combo3.AddItem i
-    Next i
 End Function
 
 Private Sub bolds_Click()
@@ -353,7 +353,6 @@ Private Sub Combo2_Click()
 
     DoEvents
     contents.SelFontName = Combo2.Text
-    contents.Font.Name = Combo2.Text
 End Sub
 
 Private Sub Combo3_Change()

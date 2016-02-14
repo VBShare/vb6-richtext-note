@@ -10,7 +10,6 @@ Begin VB.Form login
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    MinButton       =   0   'False
-   Picture         =   "frmLogin.frx":08CA
    ScaleHeight     =   1453.449
    ScaleMode       =   0  'User
    ScaleWidth      =   4281.594
@@ -75,11 +74,24 @@ Begin VB.Form login
       Width           =   2325
    End
    Begin VB.Label Label1 
-      Height          =   615
-      Left            =   3888
+      Alignment       =   2  'Center
+      BackStyle       =   0  'Transparent
+      Caption         =   "文 章 数 据 库"
+      BeginProperty Font 
+         Name            =   "微软雅黑"
+         Size            =   18
+         Charset         =   134
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      ForeColor       =   &H000080FF&
+      Height          =   495
+      Left            =   360
       TabIndex        =   9
-      Top             =   0
-      Width           =   735
+      Top             =   60
+      Width           =   4095
    End
    Begin VB.Label lblLabels 
       Caption         =   "用户名称(&U):"

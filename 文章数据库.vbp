@@ -18,7 +18,6 @@ Class=AdodbHelper; AdodbHelper.cls
 Class=DBModel; DBModel.cls
 Class=DbCreateHelper; DbCreateHelper.cls
 Class=DBDocument; DBDocument.cls
-Class=ConnProvider; ConnProvider.cls
 Class=DBClassOf; DBClassOf.cls
 Class=DBRelate; DBRelate.cls
 Class=DBUser; DBUser.cls

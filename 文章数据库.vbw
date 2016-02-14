@@ -10,7 +10,6 @@ AdodbHelper = 52, 52, 931, 484, C
 DBModel = 14, 11, 1054, 627, C
 DbCreateHelper = 204, 49, 1083, 481, C
 DBDocument = 149, 55, 1028, 487, C
-ConnProvider = 161, 183, 1040, 615, C
 DBClassOf = 0, 0, 879, 432, C
 DBRelate = 35, 62, 914, 494, C
 DBUser = 156, 61, 1035, 493, C

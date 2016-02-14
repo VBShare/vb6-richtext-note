@@ -213,7 +213,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
 Function ArticleById(ByVal IdNum As String) 'ok at 11-10-29
-    Set art = documents.Where("`IdNum` = ?", IdNum)
+    Set art = eDocument.Where("`IdNum` = ?", IdNum)
     
     If art.RecordCount = 0 Then
       MsgBox "未知错误！"
@@ -239,7 +239,7 @@ End Function
 Function RefreshClass() 'ok at 11-10-29
     Combo1.Clear
     section.Clear
-    Set res = class_ofs.Where("`userName` = ?", nowLogin)
+    Set res = eClassOf.Where("`userName` = ?", nowLogin)
 
     If res.RecordCount = 0 Then
       adh.ReleaseRecordset res
@@ -267,7 +267,7 @@ Function LoadArticle(ByVal user As String) 'ok at 11-10-29fist run
     fenlei.Caption = ""
     contents.Text = ""
     '添加
-    Set art = documents.Where("`auser` = ?", user)
+    Set art = eDocument.Where("`auser` = ?", user)
 
     If art.RecordCount = 0 Then
       adh.ReleaseRecordset art
@@ -300,7 +300,7 @@ Private Sub Combo1_Click() 'ok at 11-12-29
     List1.Clear
     List2.Clear
     'begin
-    Set res = documents.Where("`Class` = ? And `auser` = ?", Combo1.Text, nowLogin)
+    Set res = eDocument.Where("`Class` = ? And `auser` = ?", Combo1.Text, nowLogin)
 
     If res.RecordCount = 0 Then
       adh.ReleaseRecordset res
@@ -320,7 +320,7 @@ End Sub
 Private Sub Command1_Click() '转移分类ok at 11-10-29
 
     If section.Text = "" Then Exit Sub
-    Set art = documents.Where("`IdNum` = ?", no.Caption)
+    Set art = eDocument.Where("`IdNum` = ?", no.Caption)
 
     If art.RecordCount = 0 Then
        MsgBox "失败！", , "记录不存在"
@@ -339,7 +339,7 @@ Private Sub Command2_Click()
   IdNum = no.Caption
   If IdNum = "" Then Exit Sub
 
-  Set res = documents.Where("`IdNum` = ?", no.Caption)
+  Set res = eDocument.Where("`IdNum` = ?", no.Caption)
 
   If res.RecordCount = 0 Then
     adh.ReleaseRecordset res

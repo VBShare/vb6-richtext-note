@@ -117,7 +117,7 @@ Private Sub Command1_Click()
     End If
   End If
 
-  Set res = documents.Db.ExecQuery(sql)
+  Set res = eDocument.Db.ExecQuery(sql)
   res.Open sql, conn, 3, 3
 
   If res.RecordCount = 0 Then MsgBox "未搜索到相似信息！": res.Close: Exit Sub

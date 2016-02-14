@@ -31,15 +31,12 @@ Public adh As New AdodbHelper
 
 Public Const SE_DEBUG_PRIVILEGE As Long = 20
 'DataBase Entitys
-Public documents As DBModel
-Public class_ofs As DBModel
-Public relates As DBModel
-Public users As DBModel
 
 Public eDocument As New DBDocument
 Public eClassOf As New DBClassOf
 Public eRelate As New DBRelate
 Public eUser As New DBUser
+
 
 Function OpenTable(ByVal txtPath As String) '【功能：建立数据库连接；状态：完成】
   Set conn = New ADODB.Connection
@@ -53,24 +50,32 @@ End Function
 
 Public Sub CreateDb(ByVal DbPath As String)
   Dim dbc As New DbCreateHelper
+  Dim mDocument As DBModel, mClassOf As DBModel, mRelate As DBModel, mUser As DBModel
+  Set mDocument = New DBDocument
+  Set mClassOf = New DBClassOf
+  Set mRelate = New DBRelate
+  Set mUser = New DBUser
+  
   dbc.SetDbFile DbPath
-  dbc.InitDbFromModels documents, class_ofs, relates, users
+  dbc.InitDbFromModels mDocument, mClassOf, mRelate, mUser
 End Sub
 
 Sub Main()
     '检查数据库文件是否存在
     'VarType:8192 is base of array
 
-    SkinH_AttachEx App.Path & "\QQ2011.she", "" '最后编译时设置为可见
+    'SkinH_AttachEx App.Path & "\QQ2011.she", "" '最后编译时设置为可见
 
     Dim DbPath As String
     Dim i As Integer
     DbPath = Replace(App.Path & "\documents.mdb", "\\", "\")
+    
+    eUser.InitConn DbPath
+    eDocument.InitConn DbPath
+    eRelate.InitConn DbPath
+    eClassOf.InitConn DbPath
     Call RtlAdjustPrivilege(SE_DEBUG_PRIVILEGE, 0, 0, 1)
-    Set documents = New DBDocument
-    Set users = New DBUser
-    Set class_ofs = New DBClassOf
-    Set relates = New DBRelate
+    
 
     If Dir(DbPath) = "" Then 'file does not exist
       CreateDb DbPath

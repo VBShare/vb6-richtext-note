@@ -180,7 +180,7 @@ Private Sub Form_Unload(Cancel As Integer)
 End Sub
 
 Function clearAutoSign() 'ok at 11-10-28
-  users.Db.ExecNonQuery "Update Users Set isUsed = False"
+  eUser.Db.ExecNonQuery "Update Users Set isUsed = False"
 End Function
 
 Function SaveUserSetting(ByVal user As String) 'ok at 11-10-28
@@ -192,13 +192,13 @@ Function SaveUserSetting(ByVal user As String) 'ok at 11-10-28
   bAutologin = IIf(autologin.Value > 0, True, False)
   bRememberPass = IIf(remember.Value > 0, True, False)
 
-  users.Db.ExecParamNonQuery sql, bAutologin, bRememberPass, True, user
+  eUser.Db.ExecParamNonQuery sql, bAutologin, bRememberPass, True, user
 End Function
 
 Function ExistUser(ByVal user As String, ByVal pass As String) As Boolean
   Dim sql As String
   sql = "Select Count(*) From Users Where uName = ? And uPass = ?"
-  If users.Db.ExecParamQueryScalar(sql, user, ReWind(pass)) > 0 Then
+  If eUser.Db.ExecParamQueryScalar(sql, user, ReWind(pass)) > 0 Then
     ExistUser = True
   Else
     ExistUser = False
@@ -232,7 +232,7 @@ End Sub
 
 Function setuserState(ByVal user As String) 'ok at 11-10-29
   If eUser.UserExist(user) Then
-    Set res = users.Where("`uName` = ?", user)
+    Set res = eUser.Where("`uName` = ?", user)
     If res.fields("autologin") = True Then
       autologin.Value = 1
       remember.Value = 1

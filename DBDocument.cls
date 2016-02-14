@@ -16,7 +16,7 @@ Implements DBModel
 'Private
 Private m_TableName As String
 Private m_TableFields As String
-Private m_DBM As New DBModel
+Private m_DBH As New AdodbHelper
 Private m_UserName As String
 Private m_IsChain As Boolean
 
@@ -30,15 +30,31 @@ Private Sub Class_Initialize()
 End Sub
 
 Private Property Get DbModel_Db() As AdodbHelper
-  Set DbModel_Db = m_DBM.Db
+  Set DbModel_Db = m_DBH
 End Property
+Public Property Get Db() As AdodbHelper
+  Set Db = DbModel_Db
+End Property
+
+Private Sub DBModel_InitConn(ByVal dbFilePath As String)
+  m_DBH.SetConnToFile dbFilePath
+End Sub
+Public Sub InitConn(ByVal dbFilePath As String)
+  DBModel_InitConn dbFilePath
+End Sub
 
 Private Property Get DbModel_TableFields() As String
   DbModel_TableFields = m_TableFields
 End Property
+Public Property Get TableFields() As String
+  TableFields = DbModel_TableFields
+End Property
 
 Private Property Get DbModel_TableName() As String
   DbModel_TableName = m_TableName
+End Property
+Public Property Get TableName() As String
+  TableName = DbModel_TableName
 End Property
 
 Public Function OfUser(ByVal UserName As String) As DBDocument
@@ -47,15 +63,15 @@ Public Function OfUser(ByVal UserName As String) As DBDocument
 End Function
 
 Public Function All() As ADODB.Recordset
-  Set All = m_DBM.Db.ExecParamQuery("select * from Documents where auser = ?", m_UserName)
+  Set All = m_DBH.ExecParamQuery("select * from Documents where auser = ?", m_UserName)
 End Function
 
 Public Function FindByID(ByVal IdNum As String) As ADODB.Recordset
-  Set FindByID = m_DBM.Db.ExecParamQuery("select Topic,auser,AddTime,Class,IdNum,Content,Remark from Documents where IdNum = ? and auser = ?", IdNum, m_UserName)
+  Set FindByID = m_DBH.ExecParamQuery("select Topic,auser,AddTime,Class,IdNum,Content,Remark from Documents where IdNum = ? and auser = ?", IdNum, m_UserName)
 End Function
 
 Public Function FindByClassAndName(ByVal ClassName As String, ByVal UserName As String) As ADODB.Recordset
-  Set FindByClassAndName = m_DBM.Db.ExecParamQuery("select * from Documents where Class = ? and auser = ?", ClassName, UserName)
+  Set FindByClassAndName = m_DBH.ExecParamQuery("select * from Documents where Class = ? and auser = ?", ClassName, UserName)
 End Function
 
 Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
@@ -65,15 +81,24 @@ Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() A
   Else
     sql = "select * from " & m_TableName & " where " & Conditions
   End If
-  Set DBModel_Where = m_DBM.Db.ExecParamQuery(sql, Params)
+  Set DBModel_Where = m_DBH.ExecParamQuery(sql, Params)
+End Function
+Public Function Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
+  Dim sql As String
+  If Len(Conditions) = 0 Then
+    sql = "select * from " & m_TableName
+  Else
+    sql = "select * from " & m_TableName & " where " & Conditions
+  End If
+  Set Where = m_DBH.ExecParamQuery(sql, Params)
 End Function
 
 Public Sub TransferToClass(ByVal ClassName As String, ByVal IdNum As String)
-  m_DBM.Db.ExecParamNonQuery "Update Documents Set `Class` = ? Where `IdNum` = ?", ClassName, IdNum
+  m_DBH.ExecParamNonQuery "Update Documents Set `Class` = ? Where `IdNum` = ?", ClassName, IdNum
 End Sub
 
 Public Sub Delete(ByVal IdNum As String)
-  m_DBM.Db.ExecParamNonQuery "Delete From `Documents` Where `IdNum` = ?;", IdNum
+  m_DBH.ExecParamNonQuery "Delete From `Documents` Where `IdNum` = ?;", IdNum
 End Sub
 
 Public Sub Create(ByVal Topic As String, _
@@ -95,6 +120,6 @@ Public Sub Create(ByVal Topic As String, _
         "`Class`, `IdNum`, `auser`, `Content`, `txtContent`) VALUES (" & _
         "?, ?, ?, ?," & _
         "?, ?, ?, ?, ?);"
-  m_DBM.Db.ExecParamNonQuery sql, Topic, addtime, Remark, Source, _
+  m_DBH.ExecParamNonQuery sql, Topic, addtime, Remark, Source, _
                               ClassName, IdNum, UserName, content, txtContent
 End Sub

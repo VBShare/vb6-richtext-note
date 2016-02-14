@@ -16,23 +16,40 @@ Implements DBModel
 'Private
 Private m_TableName As String
 Private m_TableFields As String
-Private m_DBM As New DBModel
+Private m_DBH As New AdodbHelper
 Private Sub Class_Initialize()
   m_TableName = "Relate"
   m_TableFields = "section:text,keyword:text"
 End Sub
 
 Private Property Get DbModel_Db() As AdodbHelper
-  Set DbModel_Db = m_DBM.Db
+  Set DbModel_Db = m_DBH
 End Property
+Public Property Get Db() As AdodbHelper
+  Set Db = DbModel_Db
+End Property
+
+Private Sub DBModel_InitConn(ByVal dbFilePath As String)
+  m_DBH.SetConnToFile dbFilePath
+End Sub
+Public Sub InitConn(ByVal dbFilePath As String)
+  DBModel_InitConn dbFilePath
+End Sub
 
 Private Property Get DbModel_TableFields() As String
   DbModel_TableFields = m_TableFields
+End Property
+Public Property Get TableFields() As String
+  TableFields = DbModel_TableFields
 End Property
 
 Private Property Get DbModel_TableName() As String
   DbModel_TableName = m_TableName
 End Property
+Public Property Get TableName() As String
+  TableName = DbModel_TableName
+End Property
+
 
 Public Sub Create(ByVal Keyword As String, ByVal section As String)
   Dim sql As String
@@ -76,4 +93,13 @@ Private Function DBModel_Where(ByVal Conditions As String, ParamArray Params() A
     sql = "select * from " & m_TableName & " where " & Conditions
   End If
   Set DBModel_Where = m_DBM.Db.ExecParamQuery(sql, Params)
+End Function
+Public Function Where(ByVal Conditions As String, ParamArray Params() As Variant) As ADODB.Recordset
+  Dim sql As String
+  If Len(Conditions) = 0 Then
+    sql = "select * from " & m_TableName
+  Else
+    sql = "select * from " & m_TableName & " where " & Conditions
+  End If
+  Set Where = m_DBM.Db.ExecParamQuery(sql, Params)
 End Function

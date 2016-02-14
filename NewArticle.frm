@@ -131,6 +131,7 @@ Begin VB.Form NewArticle
          _ExtentX        =   18018
          _ExtentY        =   7858
          _Version        =   393217
+         Enabled         =   -1  'True
          ScrollBars      =   2
          TextRTF         =   $"NewArticle.frx":1272
       End
@@ -314,7 +315,7 @@ Function RefreshClass() 'ok at 11-10-28
 
     If nowLogin = "" Then Exit Function
     section.Clear
-    Set res = class_ofs.Where("`userName` = ?", nowLogin)
+    Set res = eClassOf.Where("`userName` = ?", nowLogin)
 
     If res.RecordCount = 0 Then
       adh.ReleaseRecordset res

@@ -509,7 +509,7 @@ Private Sub Combo1_Click()
   List1.Clear
   List2.Clear
   'begin
-  Set res = documents.Where("`Class` = ? And `auser` = ?", Combo1.Text, nowLogin)
+  Set res = eDocument.Where("`Class` = ? And `auser` = ?", Combo1.Text, nowLogin)
   If res.RecordCount = 0 Then
     adh.ReleaseRecordset res
     Exit Sub
@@ -546,7 +546,7 @@ Private Sub Combo3_Click()
 End Sub
 
 Private Sub Command1_Click() 'cancel autologin sign ok at 11-10-29
-  users.Db.ExecParamNonQuery "UPDATE Users Set isUsed = false Where uName = ?", nowLogin
+  eUser.Db.ExecParamNonQuery "UPDATE Users Set isUsed = false Where uName = ?", nowLogin
 End Sub
 
 Private Sub Command2_Click() 'ok at 11-10-29
@@ -583,7 +583,7 @@ Private Sub Command7_Click()
   Dim url As String
 
   If no.Caption = "" Then Exit Sub
-  Set res = documents.Where("IdNum = ? and 1 = ?", no.Caption, 1)
+  Set res = eDocument.Where("IdNum = ? and 1 = ?", no.Caption, 1)
 
   If res.RecordCount = 0 Then
     adh.ReleaseRecordset res
@@ -738,7 +738,7 @@ Private Sub SaveChange_Click() 'ok at 11-10-28
     b = contents.TextRTF
 
     sql = "Update `Documents` Set `Content` = ?, `txtContent` = ?, `Remark` = ? Where `IdNum` = ?"
-    documents.Db.ExecParamNonQuery sql, b, contents.Text, IIf(Len(Remark.Text) > 0, Remark.Text, "暂无评论"), no.Caption
+    eDocument.Db.ExecParamNonQuery sql, b, contents.Text, IIf(Len(Remark.Text) > 0, Remark.Text, "暂无评论"), no.Caption
 
     Call sm("", "hide")
 End Sub
@@ -773,7 +773,7 @@ End Sub
 
 Function RefreshClass() 'ok at 11-10-28
     Combo1.Clear
-    Set res = class_ofs.Db.ExecParamQuery("select `className` from `ClassOf` where `userName` = ?", nowLogin)
+    Set res = eClassOf.Db.ExecParamQuery("select `className` from `ClassOf` where `userName` = ?", nowLogin)
     If res.RecordCount = 0 Then
       adh.ReleaseRecordset res
       Exit Function
